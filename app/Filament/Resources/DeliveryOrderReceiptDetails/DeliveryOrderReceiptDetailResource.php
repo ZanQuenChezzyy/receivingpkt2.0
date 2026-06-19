@@ -18,9 +18,25 @@ class DeliveryOrderReceiptDetailResource extends Resource
 {
     protected static ?string $model = DeliveryOrderReceiptDetail::class;
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
+    protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Cube;
+    protected static string|\UnitEnum|null $navigationGroup = 'Penerimaan Receiving';
+    protected static ?int $navigationSort = 2;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    public static function getNavigationLabel(): string
+    {
+        return 'Detail Penerimaan DO';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Detail Penerimaan DO';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Detail Penerimaan DO';
+    }
 
     public static function form(Schema $schema): Schema
     {

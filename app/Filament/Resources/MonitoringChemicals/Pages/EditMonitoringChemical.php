@@ -18,4 +18,12 @@ class EditMonitoringChemical extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $record = $this->record;
+
+        // Sync ke Delivery Order Receipt
+        app(\App\Services\SyncChemicalToDeliveryOrderService::class)->sync($record);
+    }
 }

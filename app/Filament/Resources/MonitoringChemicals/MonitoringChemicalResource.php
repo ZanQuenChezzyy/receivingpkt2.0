@@ -24,6 +24,8 @@ class MonitoringChemicalResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Penerimaan Receiving';
 
+    protected static ?int $navigationSort = 3;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBeaker;
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Beaker;

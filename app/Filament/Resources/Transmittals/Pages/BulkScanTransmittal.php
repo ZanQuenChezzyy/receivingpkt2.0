@@ -5,7 +5,10 @@ namespace App\Filament\Resources\Transmittals\Pages;
 use App\Filament\Resources\Transmittals\TransmittalResource;
 use App\Models\DeliveryOrderReceipt;
 use App\Models\Transmittal;
+use App\Models\TransmittalItem;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -13,6 +16,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BulkScanTransmittal extends Page implements HasForms
@@ -27,10 +32,15 @@ class BulkScanTransmittal extends Page implements HasForms
 
     // Scanner states
     public $step = 1;
+
     public $scanned_document = '';
+
     public $scanned_103 = '';
+
     public $pending_do_id = null;
+
     public $pending_do_no = '';
+
     public ?int $transmittalId = null;
 
     public function mount(): void
@@ -40,12 +50,13 @@ class BulkScanTransmittal extends Page implements HasForms
             $transmittal = Transmittal::find($id);
             if ($transmittal) {
                 $this->transmittalId = $transmittal->id;
-                
+
                 $this->form->fill([
                     'tanggal' => $transmittal->created_at->format('Y-m-d'),
                     'type' => $transmittal->type,
                     'destination' => $transmittal->destination,
                 ]);
+
                 return;
             }
         }
@@ -98,7 +109,7 @@ class BulkScanTransmittal extends Page implements HasForms
                                 Transmittal::find($this->transmittalId)?->update(['type' => $state]);
                             }
                         }),
-                        
+
                     ToggleButtons::make('destination')
                         ->label('Tujuan')
                         ->options([
@@ -142,6 +153,7 @@ class BulkScanTransmittal extends Page implements HasForms
                 ->body('Pastikan Anda telah memilih Tanggal, Tipe, dan Tujuan Transmittal.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -163,6 +175,7 @@ class BulkScanTransmittal extends Page implements HasForms
                 ->body("Dokumen dengan nomor {$code} tidak ditemukan.")
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -172,12 +185,12 @@ class BulkScanTransmittal extends Page implements HasForms
         } else {
             // Tipe Kirim: Perlu dual-scan
             $this->pending_do_id = $doReceipt->id;
-            
+
             // Ambil nomor PO dari relasi
             $detail = $doReceipt->deliveryOrderReceiptDetails()->first();
             $po_no = $detail ? ($detail->purchaseOrderIssued->purchase_order_no ?? '') : '';
             $this->pending_do_no = $po_no ?: ($doReceipt->delivery_oder_no ?? $code);
-            
+
             $this->step = 2; // Lanjut ke step 2 (Scan 103)
             $this->dispatch('play-success-sound'); // Sound success untuk step 1
             $this->dispatch('focus-103-input'); // Beri tahu alpineJS untuk fokus ke input 2
@@ -200,17 +213,18 @@ class BulkScanTransmittal extends Page implements HasForms
         $doReceipt = DeliveryOrderReceipt::find($this->pending_do_id);
         if (! $doReceipt) {
             $this->resetScanState();
+
             return;
         }
 
         // Update QR 103
         $doReceipt->update([
-            'qr_103_code' => $code103
+            'qr_103_code' => $code103,
         ]);
 
         // Proses Transmittal
         $this->processTransmittal($doReceipt);
-        
+
         // Reset state ke step 1
         $this->resetScanState();
         $this->dispatch('focus-document-input');
@@ -222,26 +236,27 @@ class BulkScanTransmittal extends Page implements HasForms
             return Transmittal::find($this->transmittalId);
         }
 
-        $tanggal = \Carbon\Carbon::parse($this->data['tanggal']);
-        
+        $tanggal = Carbon::parse($this->data['tanggal']);
+
         // Cari transmittal yang ada di tanggal tersebut
         $transmittal = Transmittal::where('type', $this->data['type'])
             ->where('destination', $this->data['destination'])
-            ->where('created_by', auth()->id() ?? 1)
+            ->where('created_by', Auth::user()->id ?? 1)
             ->whereDate('created_at', $tanggal->toDateString())
             ->first();
-            
-        if (!$transmittal) {
+
+        if (! $transmittal) {
             $transmittal = Transmittal::create([
                 'type' => $this->data['type'],
                 'destination' => $this->data['destination'],
-                'created_by' => auth()->id() ?? 1,
+                'created_by' => Auth::user()->id ?? 1,
                 'created_at' => $tanggal->setTimeFrom(now()),
                 'transmittal_no' => 'TRM-'.$tanggal->format('Ymd').'-'.strtoupper(substr(uniqid(), -4)),
             ]);
         }
-        
+
         $this->transmittalId = $transmittal->id;
+
         return $transmittal;
     }
 
@@ -254,6 +269,7 @@ class BulkScanTransmittal extends Page implements HasForms
                 ->body('Tipe, Tujuan, atau Tanggal kosong. Harap segarkan halaman (F5) dan coba lagi.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -269,12 +285,13 @@ class BulkScanTransmittal extends Page implements HasForms
                 ->body("Dokumen {$doReceipt->delivery_oder_no} sudah ada di Transmittal {$this->data['type']} ke {$this->data['destination']} hari ini.")
                 ->warning()
                 ->send();
+
             return;
         }
 
         // Jika tipe transmittal bukan 'Kembali', cek apakah dokumen ini sudah pernah ada di Transmittal lain sebelumnya
         if ($this->data['type'] !== 'Kembali') {
-            $previousTransmittalItem = \App\Models\TransmittalItem::where('delivery_order_receipt_id', $doReceipt->id)
+            $previousTransmittalItem = TransmittalItem::where('delivery_order_receipt_id', $doReceipt->id)
                 ->where('transmittal_id', '!=', $transmittal->id)
                 ->latest()
                 ->first();
@@ -285,6 +302,7 @@ class BulkScanTransmittal extends Page implements HasForms
                 if ($latestQc && $latestQc->status === 'Revisi') {
                     // Otomatis gunakan alasan revisi tanpa perlu modal
                     $this->resumeProcessTransmittal($doReceipt, $transmittal, $latestQc->notes);
+
                     return;
                 }
 
@@ -293,6 +311,7 @@ class BulkScanTransmittal extends Page implements HasForms
                     'do_id' => $doReceipt->id,
                     'transmittal_id' => $transmittal->id,
                 ]);
+
                 return;
             }
         }
@@ -301,21 +320,21 @@ class BulkScanTransmittal extends Page implements HasForms
         $this->resumeProcessTransmittal($doReceipt, $transmittal);
     }
 
-    public function requireReasonAction(): \Filament\Actions\Action
+    public function requireReasonAction(): Action
     {
-        return \Filament\Actions\Action::make('requireReason')
+        return Action::make('requireReason')
             ->modalHeading('Dokumen Sudah Pernah Diajukan')
             ->modalDescription('Sistem mendeteksi bahwa dokumen ini sudah pernah dikirim atau dikembalikan pada Transmittal sebelumnya. Harap masukkan alasan mengapa dokumen ini diajukan ulang.')
             ->form([
-                \Filament\Forms\Components\Textarea::make('reason')
+                Textarea::make('reason')
                     ->label('Alasan Pengajuan Ulang')
                     ->required()
                     ->maxLength(255),
             ])
             ->action(function (array $data, array $arguments) {
-                $doReceipt = \App\Models\DeliveryOrderReceipt::find($arguments['do_id']);
-                $transmittal = \App\Models\Transmittal::find($arguments['transmittal_id']);
-                
+                $doReceipt = DeliveryOrderReceipt::find($arguments['do_id']);
+                $transmittal = Transmittal::find($arguments['transmittal_id']);
+
                 if ($doReceipt && $transmittal) {
                     $this->resumeProcessTransmittal($doReceipt, $transmittal, $data['reason']);
                     $this->resetScanState();
@@ -340,14 +359,14 @@ class BulkScanTransmittal extends Page implements HasForms
             $destination = $this->data['type'] === 'Kembali' ? 'Receiving' : $this->data['destination'];
             $notes = "Di-scan melalui Transmittal {$this->data['type']} (Tujuan: {$destination})";
             if ($reason) {
-                $notes .= "<br>Alasan Pengajuan Ulang: " . $reason;
+                $notes .= '<br>Alasan Pengajuan Ulang: '.$reason;
             }
 
             // Catat ke QcHistory
             $doReceipt->qcHistories()->create([
                 'status' => $this->data['type'],
                 'notes' => $notes,
-                'created_by' => auth()->id() ?? 1,
+                'created_by' => Auth::user()->id ?? 1,
             ]);
 
             DB::commit();
@@ -372,11 +391,11 @@ class BulkScanTransmittal extends Page implements HasForms
 
     public function deleteItem($itemId)
     {
-        $item = \App\Models\TransmittalItem::find($itemId);
+        $item = TransmittalItem::find($itemId);
         if ($item) {
             $doReceipt = $item->deliveryOrderReceipt;
             $transmittal = $item->transmittal;
-            
+
             // Hapus log QC history yang terkait dengan transmittal ini
             if ($doReceipt && $transmittal) {
                 $doReceipt->qcHistories()
@@ -409,7 +428,7 @@ class BulkScanTransmittal extends Page implements HasForms
 
         $transmittal = Transmittal::where('type', $this->data['type'])
             ->where('destination', $this->data['destination'])
-            ->where('created_by', auth()->id() ?? 1)
+            ->where('created_by', Auth::user()->id ?? 1)
             ->whereDate('created_at', \Carbon\Carbon::parse($this->data['tanggal'])->toDateString())
             ->first();
 

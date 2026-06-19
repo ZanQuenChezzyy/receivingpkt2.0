@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'monitoring_chemical_id',
-    'tahapan_qc_id',
+    'chemical_qc_tuv_id',
     'quantity_received',
 ])]
 class MonitoringChemicalDetail extends Model
@@ -31,6 +31,6 @@ class MonitoringChemicalDetail extends Model
 
     public function chemicalQcTuv(): BelongsTo
     {
-        return $this->belongsTo(ChemicalQcTuv::class, 'tahapan_qc_id');
+        return $this->belongsTo(ChemicalQcTuv::class, 'chemical_qc_tuv_id');
     }
 }

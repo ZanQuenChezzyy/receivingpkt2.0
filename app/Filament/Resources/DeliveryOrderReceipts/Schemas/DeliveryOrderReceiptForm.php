@@ -237,8 +237,8 @@ class DeliveryOrderReceiptForm
                             return null;
                         }
 
-                        // Langsung tarik net_price dari tabel purchase_order_issueds
-                        $unitPrice = (float) $item->net_price;
+                        // Menghitung net_price berdasarkan konversi Local Currency (IDR)
+                        $unitPrice = ($item->qty_po > 0) ? ((float) $item->total_amount_in_lc / (float) $item->qty_po) : (float) $item->net_price;
 
                         return [
                             'purchase_order_issued_id' => $item->id,
@@ -615,7 +615,7 @@ class DeliveryOrderReceiptForm
                     ->reorderable(false)
                     ->deletable(true)
                     ->schema([
-                        Grid::make(3)->schema([
+                        Grid::make(12)->schema([
                             Hidden::make('purchase_order_issued_id'),
                             Hidden::make('item_no'),
                             Hidden::make('mrp_type'),
@@ -628,19 +628,21 @@ class DeliveryOrderReceiptForm
                             Hidden::make('unit_price')->dehydrated(false),
 
                             Hidden::make('total_amount_snapshot'),
+                            
                             Hidden::make('uoi'),
 
                             TextInput::make('material_code')
                                 ->label('Kode Material')
                                 ->placeholder('Kode Material')
                                 ->disabled()
-                                ->dehydrated(),
+                                ->dehydrated()
+                                ->columnSpan(4),
 
                             TextInput::make('description')
                                 ->label('Deskripsi')
                                 ->disabled()
                                 ->dehydrated()
-                                ->columnSpan(2),
+                                ->columnSpan(8),
 
                             TextInput::make('quantity')
                                 ->label('Quantity Diterima')
@@ -812,7 +814,10 @@ class DeliveryOrderReceiptForm
                         if ($poId && $itemNo) {
                             $poItem = PurchaseOrderIssued::find($poId);
 
-                            $unitPrice = $poItem ? (float) $poItem->net_price : 0;
+                            $unitPrice = 0;
+                            if ($poItem) {
+                                $unitPrice = ($poItem->qty_po > 0) ? ((float) $poItem->total_amount_in_lc / (float) $poItem->qty_po) : (float) $poItem->net_price;
+                            }
 
                             [$qtyPo, $netSaved] = static::computeNetForItem((int) $poId, (string) $itemNo, $excludeId);
                             $sisaKuota = $qtyPo - $netSaved;
@@ -833,6 +838,31 @@ class DeliveryOrderReceiptForm
                         unset($data['unit_price']);
 
                         return $data;
+                    }),
+
+                \Filament\Forms\Components\Placeholder::make('grand_total_view')
+                    ->hiddenLabel()
+                    ->content(function (Get $get) {
+                        $details = $get('deliveryOrderReceiptDetails') ?? [];
+                        $grandTotal = 0;
+                        foreach ($details as $detail) {
+                            $qty = (float) ($detail['quantity'] ?? 0);
+                            $price = (float) ($detail['unit_price'] ?? 0);
+                            $grandTotal += ($qty * $price);
+                        }
+
+                        if ($grandTotal == 0) {
+                            return null;
+                        }
+
+                        return new \Illuminate\Support\HtmlString("
+                            <div class='flex justify-end mt-2 mb-4'>
+                                <div class='bg-gray-50 p-4 rounded-lg border border-gray-200 min-w-[300px] text-right'>
+                                    <span class='text-sm text-gray-500 block mb-1'>Total Nilai Penerimaan</span>
+                                    <span class='text-xl font-bold text-primary-600'>Rp " . number_format($grandTotal, 2, ',', '.') . "</span>
+                                </div>
+                            </div>
+                        ");
                     }),
 
                 EmptyState::make('Belum ada Nomor PO yang dipilih')

@@ -60,4 +60,18 @@ class DeliveryOrderReceiptDetail extends Model
     {
         return $this->belongsTo(LocationReceiving::class, 'location_id');
     }
+
+    protected static function booted()
+    {
+        static::saving(function ($detail) {
+            if ($detail->purchase_order_issued_id && $detail->quantity !== null) {
+                // Ensure purchaseOrderIssued relation is loaded or load it
+                $po = $detail->purchaseOrderIssued;
+                if ($po) {
+                    $unitPriceLc = ($po->qty_po > 0) ? ((float) $po->total_amount_in_lc / (float) $po->qty_po) : (float) $po->net_price;
+                    $detail->total_amount_snapshot = (float) $detail->quantity * $unitPriceLc;
+                }
+            }
+        });
+    }
 }

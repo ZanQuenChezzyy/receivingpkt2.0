@@ -15,54 +15,76 @@ class MonitoringNpksTable
     {
         return $table
             ->columns([
-                TextColumn::make('purchase_order_terbit_id')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('purchaseOrderIssued.purchase_order_no')
+                    ->label('Nomor PO')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                
                 TextColumn::make('delivery_oder_number')
-                    ->searchable(),
-                TextColumn::make('location.name')
-                    ->searchable(),
-                TextColumn::make('sample_receivied_date')
-                    ->date()
+                    ->label('Nomor DO')
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('stage')
-                    ->searchable(),
-                TextColumn::make('delivery_oder_delivery_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('purchase_order_103_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('received_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('purchase_order_status')
-                    ->searchable(),
-                TextColumn::make('purchase_order_status_a_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('purchase_order_status_b_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('laprima_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('coa_date')
-                    ->date()
-                    ->sortable(),
+
+                \Filament\Tables\Columns\IconColumn::make('sample_receivied_date')
+                    ->label('Sample')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('delivery_oder_delivery_date')
+                    ->label('DO Dikirim')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('received_date')
+                    ->label('Penerimaan')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('purchase_order_103_date')
+                    ->label('103')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('laprima_date')
+                    ->label('LAPRIMA')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('coa_date')
+                    ->label('COA')
+                    ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+
+                \Filament\Tables\Columns\IconColumn::make('purchase_order_status')
+                    ->label('Status PO')
+                    ->icon(fn ($record) => 
+                        ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) || 
+                        ($record->purchase_order_status === 'B' && filled($record->purchase_order_status_b_date))
+                        ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle'
+                    )
+                    ->color(fn ($record) => 
+                        ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) || 
+                        ($record->purchase_order_status === 'B' && filled($record->purchase_order_status_b_date))
+                        ? 'success' : 'gray'
+                    )
+                    ->tooltip(fn ($record) => $record->purchase_order_status ?: 'Belum Ada'),
+
                 TextColumn::make('doc_status')
-                    ->searchable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Status Dok.')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Completed' => 'success',
+                        'Outstanding' => 'warning',
+                        default => 'gray',
+                    }),
+
             ])
             ->filters([
                 //

@@ -24,6 +24,8 @@ class MonitoringNpkResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Penerimaan Receiving';
 
+    protected static ?int $navigationSort = 4;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Sparkles;
@@ -41,6 +43,43 @@ class MonitoringNpkResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'Monitoring NPK';
+    }
+
+    public static function hitungSisaDbByItem(int $poTerbitId, ?int $currentMonitoringId): array
+    {
+        $poRow = \App\Models\PurchaseOrderIssued::query()
+            ->select(['id', 'purchase_order_no', 'item_no', 'qty_po', 'uoi'])
+            ->find($poTerbitId);
+
+        $poNo = (string) ($poRow?->purchase_order_no ?? '');
+        $itemNo = $poRow?->item_no;
+        $poQty = (float) ($poRow?->qty_po ?? 0);
+        $uoi = $poRow?->uoi;
+
+        if ($poNo === '' || $itemNo === null) {
+            return ['po' => 0.0, 'used_db' => 0.0, 'uoi' => $uoi, 'po_no' => $poNo, 'item_no' => $itemNo];
+        }
+
+        $matchingPoTerbitIds = \App\Models\PurchaseOrderIssued::query()
+            ->where('purchase_order_no', $poNo)
+            ->where('item_no', $itemNo)
+            ->pluck('id');
+
+        $usedDb = (float) \App\Models\MonitoringNpkDetail::query()
+            ->whereHas('monitoringNpk', function ($q) use ($matchingPoTerbitIds) {
+                $q->whereIn('purchase_order_terbit_id', $matchingPoTerbitIds);
+            })
+            ->where('item_no', $itemNo)
+            ->when($currentMonitoringId, fn($q) => $q->where('monitoring_npk_id', '!=', $currentMonitoringId))
+            ->sum('quantity');
+
+        return [
+            'po' => $poQty,
+            'used_db' => $usedDb,
+            'uoi' => $uoi,
+            'po_no' => $poNo,
+            'item_no' => $itemNo,
+        ];
     }
 
     public static function form(Schema $schema): Schema

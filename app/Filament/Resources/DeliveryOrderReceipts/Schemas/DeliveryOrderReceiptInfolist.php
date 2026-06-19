@@ -213,12 +213,19 @@ class DeliveryOrderReceiptInfolist
                                             ->size(TextSize::Small)
                                             ->color('gray'),
 
-                                        // Menarik Net Price langsung dari relasi PurchaseOrderIssued
-                                        TextEntry::make('purchaseOrderIssued.net_price')
-                                            ->label('Net Price')
+                                        // Menarik Net Price dari hasil konversi Local Currency (IDR)
+                                        TextEntry::make('net_price_lc')
+                                            ->label('Net Price (IDR)')
                                             ->size(TextSize::Small)
                                             ->color('warning') // Diberi warna berbeda agar menonjol
                                             ->money('IDR', locale: 'id')
+                                            ->getStateUsing(function ($record) {
+                                                $po = $record->purchaseOrderIssued;
+                                                if ($po && $po->qty_po > 0) {
+                                                    return (float) $po->total_amount_in_lc / (float) $po->qty_po;
+                                                }
+                                                return $po ? $po->net_price : 0;
+                                            })
                                             ->placeholder('Harga tidak tersedia'),
 
                                         TextEntry::make('total_amount_snapshot')

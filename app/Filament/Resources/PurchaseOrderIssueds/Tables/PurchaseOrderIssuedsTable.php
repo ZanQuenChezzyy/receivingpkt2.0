@@ -102,7 +102,7 @@ class PurchaseOrderIssuedsTable
                 TextColumn::make('quantity_uoi')
                     ->label('Quantity')
                     ->getStateUsing(fn ($record) => $record->qty_po.' '.$record->uoi)
-                    ->sortable()
+                    ->sortable(query: fn (\Illuminate\Database\Eloquent\Builder $query, string $direction) => $query->orderBy('qty_po', $direction))
                     ->badge()
                     ->placeholder('None')
                     ->color('info')
