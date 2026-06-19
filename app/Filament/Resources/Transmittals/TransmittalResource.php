@@ -23,7 +23,9 @@ class TransmittalResource extends Resource
 {
     protected static ?string $model = Transmittal::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Transmittal';
+    protected static string|UnitEnum|null $navigationGroup = 'Transaksi';
+
+    protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPaperAirplane;
 

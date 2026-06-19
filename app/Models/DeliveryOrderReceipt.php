@@ -88,4 +88,9 @@ class DeliveryOrderReceipt extends Model
     {
         return $this->hasMany(DeliveryOrderReceiptDetail::class);
     }
+
+    public function grsRdtvItems(): HasMany
+    {
+        return $this->hasMany(GrsRdtvItem::class);
+    }
 }

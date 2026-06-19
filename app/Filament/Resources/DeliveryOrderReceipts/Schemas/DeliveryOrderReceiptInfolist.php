@@ -13,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Storage;
 
 class DeliveryOrderReceiptInfolist
 {
@@ -59,6 +60,43 @@ class DeliveryOrderReceiptInfolist
                                         default => 'gray',
                                     }),
                             ]),
+                        ]),
+
+                    Section::make('Dokumen GRS & RDTV Terkait')
+                        ->icon(Heroicon::OutlinedDocumentCurrencyDollar)
+                        ->schema([
+                            RepeatableEntry::make('grsRdtvItems')
+                                ->hiddenLabel()
+                                ->schema([
+                                    Grid::make(2)->schema([
+                                        TextEntry::make('grsRdtv.category')
+                                            ->label('Kategori')
+                                            ->badge()
+                                            ->color(fn ($state) => match ($state) {
+                                                'GRS' => 'success',
+                                                'RDTV' => 'warning',
+                                                default => 'gray',
+                                            }),
+                                        TextEntry::make('created_at')
+                                            ->label('Waktu Unggah')
+                                            ->dateTime(),
+                                        TextEntry::make('file_path')
+                                            ->label('File Dokumen')
+                                            ->formatStateUsing(fn () => 'Lihat Dokumen')
+                                            ->url(fn ($record) => Storage::url($record->file_path))
+                                            ->openUrlInNewTab()
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->color('primary'),
+                                        TextEntry::make('grsRdtv.createdBy.name')
+                                            ->label('Diunggah Oleh'),
+                                    ]),
+                                ])
+                                ->visible(fn ($record) => $record->grsRdtvItems()->exists()),
+
+                            TextEntry::make('no_docs')
+                                ->hiddenLabel()
+                                ->placeholder('Belum ada dokumen GRS/RDTV yang ditautkan ke DO ini.')
+                                ->visible(fn ($record) => ! $record->grsRdtvItems()->exists()),
                         ]),
 
                     // 📦 TABEL DETAIL MATERIAL (LENGKAP)

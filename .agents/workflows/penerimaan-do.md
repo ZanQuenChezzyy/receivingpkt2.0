@@ -62,3 +62,26 @@ Modul ini adalah bukti sah hitam di atas putih penyerahan dokumen antara Receivi
 - Admin membuka menu "Transmittal Kembali" dan memilih Tanggal.
 - **ATURAN UI/UX:** Aktifkan mode _Looping Scan_.
 - Admin hanya perlu memindai **QR Dokumen** yang ada di map secara bergantian hingga semua berkas hari itu masuk ke dalam daftar terima sistem.
+
+---
+
+## MODUL 3: GRS & RDTV (DIGITALISASI PENAGIHAN)
+
+Modul ini mengelola pencatatan Goods Receipt Slip (GRS) dan Return Delivery to Vendor (RDTV) yang kini sepenuhnya digital (tanpa berkas fisik fisik penagihan) menggunakan basis Surat DOF. Bukti GRS/RDTV ini sangat krusial untuk diteruskan ke tahap Invoicing.
+
+### 1. Inisiasi Input (Admin)
+- Admin membuka navigasi "GRS & RDTV", lalu mengklik tombol "Tambah".
+- Admin memilih **Tanggal** eksekusi (contoh: 19/06/2026).
+- Admin memilih jenis **Kategori Dokumen** (GRS atau RDTV).
+
+### 2. Bulk Upload & Smart Parsing (Otomatisasi)
+- **ATURAN UI/UX:** Sistem menyediakan area unggah *Multiple Files* (Drag-and-Drop) untuk menangani puluhan dokumen PDF sekaligus.
+- **IDENTIFIKASI NAMA FILE:** Agen/Sistem dilarang meminta input manual untuk pemetaan. Sistem wajib membaca **Nama File** yang diunggah karena nama file tersebut adalah **Kode Dokumen** unik.
+  *(Contoh: Jika file bernama `5300057474-10-5208-17062026.pdf`, sistem mengekstrak string `5300057474-10-5208-17062026`)*.
+
+### 3. Auto-Mapping & Update Status Lintas Modul (Managing Relationship)
+- Begitu file diunggah, sistem melakukan *Query* ke database untuk mencari record di "Penerimaan DO" yang memiliki `Kode Dokumen` identik dengan nama file tersebut.
+- Jika cocok (*match*), sistem mengeksekusi 2 tindakan latar belakang:
+  1. **Relasi Database:** File GRS/RDTV yang diunggah otomatis ditautkan secara digital ke data Penerimaan DO terkait.
+  2. **Auto-Status Update:** Status dokumen pada Penerimaan DO otomatis berubah menjadi **`GRS`** (atau **`RDTV`**).
+- *Tujuan:* Otomatisasi mutlak. Admin tidak perlu mencari dan me-link dokumen satu per satu. Begitu PDF di-upload, status penerimaan DO langsung tertutup dan siap masuk antrean *Invoicing*.
