@@ -85,7 +85,7 @@ class DeliveryOrderReceiptForm
                 ->dehydrated(true) // Pastikan masuk ke DB
                 ->columnSpanFull()
                 // 🔒 KUNCI MASTER: Mengunci toggle jika is_mode_locked bernilai true
-                ->disabled(fn (Get $get) => empty($get('search_po')) || $get('is_mode_locked') === true)
+                ->disabled(fn(Get $get) => empty($get('search_po')) || $get('is_mode_locked') === true)
                 ->afterStateHydrated(function (ToggleButtons $component, $record, Set $set) {
                     // Logika ketika masuk halaman Edit (Selalu Terkunci!)
                     if ($record) {
@@ -182,15 +182,15 @@ class DeliveryOrderReceiptForm
                 })
                 ->noSearchResultsMessage('Purchase Order tidak ditemukan.')
                 ->getSearchResultsUsing(
-                    fn (string $search): array => PurchaseOrderIssued::where('purchase_order_no', 'like', "%{$search}%")
+                    fn(string $search): array => PurchaseOrderIssued::where('purchase_order_no', 'like', "%{$search}%")
                         ->limit(10)
                         ->pluck('purchase_order_no', 'purchase_order_no')
                         ->toArray()
                 )
-                ->getOptionLabelUsing(fn ($value): ?string => $value)
+                ->getOptionLabelUsing(fn($value): ?string => $value)
                 ->live()
                 ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                    if (! $state) {
+                    if (!$state) {
                         $set('deliveryOrderReceiptDetails', []);
                         $set('source_type', null);
                         $set('document_code', null);
@@ -280,13 +280,13 @@ class DeliveryOrderReceiptForm
                 ->maxLength(25) // Disesuaikan dengan DB
                 ->minLength(3)
                 ->unique(ignoreRecord: true)
-                ->disabled(fn (Get $get) => empty($get('search_po')))
+                ->disabled(fn(Get $get) => empty($get('search_po')))
                 ->live(onBlur: true)
-                ->afterStateUpdated(fn (Set $set, Get $get) => self::updateDocumentCode($set, $get))
+                ->afterStateUpdated(fn(Set $set, Get $get) => self::updateDocumentCode($set, $get))
                 ->required(),
 
             DatePicker::make('received_date')
-                ->label(fn (Get $get) => match ($get('receipt_mode')) {
+                ->label(fn(Get $get) => match ($get('receipt_mode')) {
                     'Standard' => 'Tanggal Terima',
                     default => 'Tanggal Terima Sistem (DOF/AWB)', // Label default
                 })
@@ -294,7 +294,7 @@ class DeliveryOrderReceiptForm
                 ->native(false)
                 ->maxDate(now())
                 ->minDate(now()->addDays(-30))
-                ->disabled(fn (Get $get) => empty($get('search_po')))
+                ->disabled(fn(Get $get) => empty($get('search_po')))
                 ->live()
                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                     self::updateDocumentCode($set, $get);
@@ -314,7 +314,7 @@ class DeliveryOrderReceiptForm
                 ->default(Auth::id())
                 ->preload()
                 ->searchable()
-                ->disabled(fn (Get $get) => empty($get('search_po')))
+                ->disabled(fn(Get $get) => empty($get('search_po')))
                 ->required(),
 
             Select::make('global_location_id')
@@ -324,7 +324,7 @@ class DeliveryOrderReceiptForm
                 ->searchable()
                 ->preload()
                 ->live()
-                ->disabled(fn (Get $get) => empty($get('search_po')))
+                ->disabled(fn(Get $get) => empty($get('search_po')))
                 ->afterStateHydrated(function (Select $component, $record) {
                     if ($record) {
                         $firstDetail = $record->deliveryOrderReceiptDetails()->first();
@@ -336,32 +336,32 @@ class DeliveryOrderReceiptForm
                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                     $details = $get('deliveryOrderReceiptDetails') ?? [];
                     foreach ($details as $key => $detail) {
-                        if (! $state) {
+                        if (!$state) {
                             $set("deliveryOrderReceiptDetails.{$key}.location_id", null);
 
                             continue;
                         }
-                        if (! ($detail['is_different_location'] ?? false)) {
+                        if (!($detail['is_different_location'] ?? false)) {
                             $set("deliveryOrderReceiptDetails.{$key}.location_id", $state);
                         }
                     }
                 })
-                ->columnSpan(fn (Get $get) => $get('receipt_mode') === 'Termin' ? 2 : 1),
+                ->columnSpan(fn(Get $get) => $get('receipt_mode') === 'Termin' ? 2 : 1),
 
             TextInput::make('stage')
                 ->label('Tahapan / Keterangan (Opsional)')
                 ->placeholder('Contoh: TAHAP 1')
-                ->disabled(fn (Get $get) => empty($get('search_po')))
-                ->visible(fn (Get $get) => $get('receipt_mode') !== 'Termin')
-                ->readOnly(fn (Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
+                ->disabled(fn(Get $get) => empty($get('search_po')))
+                ->visible(fn(Get $get) => $get('receipt_mode') !== 'Termin')
+                ->readOnly(fn(Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
                 ->live(onBlur: true)
-                ->afterStateUpdated(fn (Set $set, Get $get) => self::updateDocumentCode($set, $get)),
+                ->afterStateUpdated(fn(Set $set, Get $get) => self::updateDocumentCode($set, $get)),
 
             TextInput::make('dof_number')
                 ->label('Nomor Surat DOF')
                 ->placeholder('Masukkan Nomor Surat DOF')
-                ->required(fn (Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
-                ->visible(fn (Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
+                ->required(fn(Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
+                ->visible(fn(Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
                 ->maxLength(100) // Disesuaikan dengan DB
                 ->columnSpan(1),
 
@@ -369,14 +369,14 @@ class DeliveryOrderReceiptForm
                 ->label('Tanggal Surat DOF')
                 ->placeholder('Pilih Tanggal Surat DOF')
                 ->native(false)
-                ->required(fn (Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
-                ->visible(fn (Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
+                ->required(fn(Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
+                ->visible(fn(Get $get) => $get('receipt_mode') === 'DOF_Incoterm')
                 ->columnSpan(1),
 
             Toggle::make('is_physically_received')
                 ->label('Barang Fisik Sudah Tiba di Gudang?')
                 ->live()
-                ->hidden(fn (Get $get) => $get('receipt_mode') === 'Standard')
+                ->hidden(fn(Get $get) => $get('receipt_mode') === 'Standard')
                 ->dehydratedWhenHidden() // Memastikan nilai true yang di-set dari backend tetap tersimpan
                 ->default(false),
 
@@ -384,8 +384,8 @@ class DeliveryOrderReceiptForm
                 ->label('Tanggal Barang Fisik Tiba')
                 ->placeholder('Pilih Tanggal')
                 ->native(false)
-                ->required(fn (Get $get) => $get('is_physically_received') === true && $get('receipt_mode') !== 'Standard')
-                ->visible(fn (Get $get) => $get('is_physically_received') === true && $get('receipt_mode') !== 'Standard')
+                ->required(fn(Get $get) => $get('is_physically_received') === true && $get('receipt_mode') !== 'Standard')
+                ->visible(fn(Get $get) => $get('is_physically_received') === true && $get('receipt_mode') !== 'Standard')
                 ->dehydratedWhenHidden() // Memastikan tanggal tersimpan meski form di-hidden
                 ->maxDate(now()),
         ]);
@@ -409,7 +409,7 @@ class DeliveryOrderReceiptForm
                 ->searchable()
                 ->required()
                 ->live()
-                ->afterStateUpdated(fn (Set $set, Get $get) => self::updateDocumentCode($set, $get)),
+                ->afterStateUpdated(fn(Set $set, Get $get) => self::updateDocumentCode($set, $get)),
 
             TextInput::make('termin_percentage')
                 ->label('Persentase Qty (%)')
@@ -420,10 +420,10 @@ class DeliveryOrderReceiptForm
                 ->placeholder('Contoh: 20')
                 ->required()
                 ->rules([
-                    fn (Get $get, $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                    fn(Get $get, $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
                         $valString = str_replace(',', '.', (string) $value);
 
-                        if (! is_numeric($valString)) {
+                        if (!is_numeric($valString)) {
                             $fail('Format persentase tidak valid. Masukkan angka (contoh: 15,5).');
 
                             return;
@@ -489,8 +489,8 @@ class DeliveryOrderReceiptForm
         ])
             ->columns(2)
             ->columnSpanFull()
-            ->disabled(fn (Get $get) => empty($get('search_po')))
-            ->visible(fn (Get $get) => $get('receipt_mode') === 'Termin');
+            ->disabled(fn(Get $get) => empty($get('search_po')))
+            ->visible(fn(Get $get) => $get('receipt_mode') === 'Termin');
     }
 
     protected static function getDataLainnyaFieldset(): Section
@@ -510,7 +510,7 @@ class DeliveryOrderReceiptForm
                     ->autosize()
                     ->rows(3)
                     ->columnSpanFull()
-                    ->disabled(fn (Get $get) => empty($get('search_po'))),
+                    ->disabled(fn(Get $get) => empty($get('search_po'))),
 
                 FileUpload::make('document_path')
                     ->label('Upload DO / Dokumen')
@@ -518,20 +518,20 @@ class DeliveryOrderReceiptForm
                     ->maxSize(5120)
                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                     ->columnSpanFull()
-                    ->disabled(fn (Get $get) => empty($get('search_po'))),
+                    ->disabled(fn(Get $get) => empty($get('search_po'))),
 
                 Select::make('created_by')
                     ->label('Dibuat Oleh')
                     ->relationship('createdBy', 'name')
                     ->default(Auth::id())
                     ->dehydrated()
-                    ->disabled(fn () => Auth::user()->hasRole('Administrator') !== true),
+                    ->disabled(fn() => Auth::user()->hasRole('Administrator') !== true),
 
                 DatePicker::make('post_103')
                     ->label('Tanggal Post 103 (SAP)')
                     ->placeholder('Belum di-Post')
                     ->native(false)
-                    ->disabled(fn () => Auth::user()->hasRole('Administrator') !== true),
+                    ->disabled(fn() => Auth::user()->hasRole('Administrator') !== true),
 
                 TextInput::make('qr_103_code')
                     ->label('Kode QR 103')
@@ -548,19 +548,19 @@ class DeliveryOrderReceiptForm
                         'Lainnya' => 'Lainnya',
                     ])
                     ->live()
-                    ->disabled(fn () => Auth::user()->hasRole('Administrator') !== true),
+                    ->disabled(fn() => Auth::user()->hasRole('Administrator') !== true),
 
                 Textarea::make('delay_notes')
                     ->label('Catatan Penundaan (Lainnya)')
                     ->rows(2)
-                    ->visible(fn (Get $get) => $get('delay_reason') === 'Lainnya')
-                    ->required(fn (Get $get) => $get('delay_reason') === 'Lainnya')
-                    ->disabled(fn () => Auth::user()->hasRole('Administrator') !== true),
+                    ->visible(fn(Get $get) => $get('delay_reason') === 'Lainnya')
+                    ->required(fn(Get $get) => $get('delay_reason') === 'Lainnya')
+                    ->disabled(fn() => Auth::user()->hasRole('Administrator') !== true),
 
                 Grid::make(3)->schema([
                     TextEntry::make('document_code_view')
                         ->label('Kode Dokumen')
-                        ->state(fn (Get $get) => $get('document_code'))
+                        ->state(fn(Get $get) => $get('document_code'))
                         ->weight(FontWeight::Bold)
                         ->color('primary')
                         ->copyable()
@@ -571,23 +571,23 @@ class DeliveryOrderReceiptForm
                         ->placeholder('Otomatis Terisi'),
                     TextEntry::make('source_type_view')
                         ->label('Tipe Source')
-                        ->state(fn (Get $get) => $get('source_type'))
+                        ->state(fn(Get $get) => $get('source_type'))
                         ->weight(FontWeight::Bold)
                         ->placeholder('Otomatis Terisi'),
 
                     TextEntry::make('status_view')
                         ->label('Status')
-                        ->state(fn ($record) => $record ? ($record->status ?: 'Diterima') : 'Draft')
+                        ->state(fn($record) => $record ? ($record->status ?: 'Diterima') : 'Draft')
                         ->badge()
-                        ->color(fn ($state) => $state === 'Draft' ? 'warning' : 'success')
-                        ->icon(fn ($state) => $state === 'Draft' ? Heroicon::PencilSquare : Heroicon::CheckCircle),
+                        ->color(fn($state) => $state === 'Draft' ? 'warning' : 'success')
+                        ->icon(fn($state) => $state === 'Draft' ? Heroicon::PencilSquare : Heroicon::CheckCircle),
                 ])->columnSpanFull(),
             ])
             ->columns(2)
             ->columnSpanFull()
             ->collapsible()
             ->description('Informasi tambahan yang diisi otomatis oleh sistem.')
-            ->disabled(fn (Get $get) => empty($get('search_po')));
+            ->disabled(fn(Get $get) => empty($get('search_po')));
     }
 
     public static function getDaftarMaterial(): Section
@@ -608,9 +608,9 @@ class DeliveryOrderReceiptForm
                 Repeater::make('deliveryOrderReceiptDetails')
                     ->label('Detail Penerimaan Material')
                     ->relationship('deliveryOrderReceiptDetails')
-                    ->itemLabel(fn ($state) => $state['description'] ?? 'Item')
+                    ->itemLabel(fn($state) => $state['description'] ?? 'Item')
                     ->minItems(1)
-                    ->hidden(fn (Get $get): bool => empty($get('deliveryOrderReceiptDetails')))
+                    ->hidden(fn(Get $get): bool => empty($get('deliveryOrderReceiptDetails')))
                     ->addable(false)
                     ->reorderable(false)
                     ->deletable(true)
@@ -628,7 +628,7 @@ class DeliveryOrderReceiptForm
                             Hidden::make('unit_price')->dehydrated(false),
 
                             Hidden::make('total_amount_snapshot'),
-                            
+
                             Hidden::make('uoi'),
 
                             TextInput::make('material_code')
@@ -650,10 +650,10 @@ class DeliveryOrderReceiptForm
                                 ->required()
                                 ->mask(RawJs::make('$money($input)'))
                                 ->stripCharacters(',')
-                                ->readOnly(fn (Get $get): bool => $get('../../receipt_mode') === 'Termin')
-                                ->hint(fn (Get $get) => $get('../../receipt_mode') === 'Termin' ? 'Otomatis' : null)
+                                ->readOnly(fn(Get $get): bool => $get('../../receipt_mode') === 'Termin')
+                                ->hint(fn(Get $get) => $get('../../receipt_mode') === 'Termin' ? 'Otomatis' : null)
                                 ->rules([
-                                    fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                    fn(Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
                                         $isToleranceActive = (bool) ($get('is_qty_tolerance') ?? false);
 
                                         if ($isToleranceActive) {
@@ -663,7 +663,7 @@ class DeliveryOrderReceiptForm
                                         $poId = $get('purchase_order_issued_id');
                                         $itemNo = $get('item_no');
 
-                                        if (! $poId) {
+                                        if (!$poId) {
                                             return;
                                         }
 
@@ -684,8 +684,8 @@ class DeliveryOrderReceiptForm
                                 ])
                                 ->validationAttribute('Quantity')
                                 ->live(onBlur: true)
-                                ->columnSpan(2)
-                                ->suffix(fn (Get $get): string => $get('uoi') ?? '')
+                                ->columnSpan(8)
+                                ->suffix(fn(Get $get): string => $get('uoi') ?? '')
                                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                     $quantity = (float) $state;
                                     $unitPrice = (float) ($get('unit_price') ?? 0);
@@ -697,7 +697,7 @@ class DeliveryOrderReceiptForm
                                     $poId = $get('purchase_order_issued_id');
                                     $uoi = $get('uoi') ?? 'EA';
 
-                                    if (! $poId || ! $itemNo) {
+                                    if (!$poId || !$itemNo) {
                                         return null;
                                     }
 
@@ -724,13 +724,33 @@ class DeliveryOrderReceiptForm
                                     $colorRiwayat = ($netSaved > 0) ? '#4090ff' : '#4b5563';
 
                                     return new HtmlString("
-                                        <div style='margin-top: 4px; font-size: 0.8rem; line-height: 1.6;'>
-                                            <span style='color: #4b5563;'>PO Terbit: <b>{$fmtQtyPo} {$uoi}</b></span> |
-                                            <span style='color: {$colorRiwayat};'>Riwayat Terima: <b>{$fmtNetSaved} {$uoi}</b></span><br>
-                                            <span style='color: {$colorAkanDiterima}; font-weight: 600;'>Riwayat + Input Saat Ini: <b>{$fmtTotalAkanDiterima} {$uoi}</b></span><br>
-                                            {$statusInfo}
-                                        </div>
+                                            <ul class='list-disc pl-5 space-y-1 text-xs text-gray-500'>
+                                                <li>PO Terbit: <b class='text-gray-700'>{$fmtQtyPo} {$uoi}</b></li>
+                                                <li style='color: {$colorRiwayat};'>Riwayat Terima: <b>{$fmtNetSaved} {$uoi}</b></li>
+                                                <li style='color: {$colorAkanDiterima}; font-weight: 600;'>Riwayat + Input Saat Ini: <b>{$fmtTotalAkanDiterima} {$uoi}</b></li>
+                                                <li>{$statusInfo}</li>
+                                            </ul>
                                     ");
+                                }),
+
+                            Toggle::make('is_qty_tolerance')
+                                ->label('Toleransi Qty?')
+                                ->visible(fn(Get $get): bool => $get('../../receipt_mode') === 'Standard')
+                                ->live()
+                                ->columnSpan(4)
+                                ->inline(false)
+                                ->dehydrated(),
+
+                            Toggle::make('is_different_location')
+                                ->label('Beda Lokasi?')
+                                ->live()
+                                ->inline(false)
+                                ->columnSpan(4)
+                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                    if (!$state) {
+                                        $globalLoc = $get('../../global_location_id');
+                                        $set('location_id', $globalLoc);
+                                    }
                                 }),
 
                             Select::make('location_id')
@@ -742,7 +762,8 @@ class DeliveryOrderReceiptForm
                                 ->preload()
                                 ->required()
                                 ->live()
-                                ->disabled(fn (Get $get): bool => ! ($get('is_different_location') ?? false))
+                                ->columnSpan(8)
+                                ->hidden(fn(Get $get): bool => !($get('is_different_location') ?? false))
                                 ->dehydrated()
                                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                     $globalLoc = $get('../../global_location_id');
@@ -753,22 +774,6 @@ class DeliveryOrderReceiptForm
                                         $set('is_different_location', false);
                                     }
                                 }),
-
-                            Toggle::make('is_different_location')
-                                ->label('Beda Lokasi?')
-                                ->live()
-                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    if (! $state) {
-                                        $globalLoc = $get('../../global_location_id');
-                                        $set('location_id', $globalLoc);
-                                    }
-                                }),
-
-                            Toggle::make('is_qty_tolerance')
-                                ->label('Toleransi Qty?')
-                                ->visible(fn (Get $get): bool => $get('../../receipt_mode') === 'Standard')
-                                ->live()
-                                ->dehydrated(),
                         ]),
                     ])
                     ->addable(false)
@@ -840,49 +845,24 @@ class DeliveryOrderReceiptForm
                         return $data;
                     }),
 
-                \Filament\Forms\Components\Placeholder::make('grand_total_view')
-                    ->hiddenLabel()
-                    ->content(function (Get $get) {
-                        $details = $get('deliveryOrderReceiptDetails') ?? [];
-                        $grandTotal = 0;
-                        foreach ($details as $detail) {
-                            $qty = (float) ($detail['quantity'] ?? 0);
-                            $price = (float) ($detail['unit_price'] ?? 0);
-                            $grandTotal += ($qty * $price);
-                        }
-
-                        if ($grandTotal == 0) {
-                            return null;
-                        }
-
-                        return new \Illuminate\Support\HtmlString("
-                            <div class='flex justify-end mt-2 mb-4'>
-                                <div class='bg-gray-50 p-4 rounded-lg border border-gray-200 min-w-[300px] text-right'>
-                                    <span class='text-sm text-gray-500 block mb-1'>Total Nilai Penerimaan</span>
-                                    <span class='text-xl font-bold text-primary-600'>Rp " . number_format($grandTotal, 2, ',', '.') . "</span>
-                                </div>
-                            </div>
-                        ");
-                    }),
-
                 EmptyState::make('Belum ada Nomor PO yang dipilih')
                     ->description('Silakan cari dan pilih Nomor PO pada bagian Informasi Kedatangan untuk menampilkan daftar material.')
                     ->icon(Heroicon::OutlinedCursorArrowRays)
                     ->contained(true)
-                    ->visible(fn (Get $get, $record): bool => filled($get('search_po')) === false && $record === null),
+                    ->visible(fn(Get $get, $record): bool => filled($get('search_po')) === false && $record === null),
 
                 EmptyState::make('Semua item dalam PO ini sudah diterima sepenuhnya.')
                     ->description('Tidak ada sisa kuota material yang tersedia untuk diproses pada nomor PO ini.')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->contained(true)
-                    ->visible(fn (Get $get): bool => ! empty($get('search_po')) && empty($get('deliveryOrderReceiptDetails'))),
+                    ->visible(fn(Get $get): bool => !empty($get('search_po')) && empty($get('deliveryOrderReceiptDetails'))),
             ]);
     }
 
     public static function computeNetForItem(int $poIssuedId, string $itemNo, $excludeId = null): array
     {
         $poItem = PurchaseOrderIssued::find($poIssuedId);
-        if (! $poItem) {
+        if (!$poItem) {
             return [0, 0, 0, 0];
         }
 
@@ -890,7 +870,7 @@ class DeliveryOrderReceiptForm
 
         $netSaved = (float) DeliveryOrderReceiptDetail::where('purchase_order_issued_id', $poIssuedId)
             ->where('item_no', $itemNo)
-            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
             ->sum('quantity');
 
         return [$qtyPo, $netSaved];
@@ -915,7 +895,7 @@ class DeliveryOrderReceiptForm
 
         $parts = array_filter([$poNo, $itemNo, $doNo, $date, $stage]);
 
-        if (! empty($parts)) {
+        if (!empty($parts)) {
             $joinedString = implode('-', $parts);
             $upperString = strtoupper($joinedString);
             $finalDocumentCode = str_replace(' ', '', $upperString);
