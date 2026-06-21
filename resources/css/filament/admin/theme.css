@@ -5,3 +5,422 @@
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../resources/views/components/filament/**/*';
 @source '../../../../vendor/devonab/filament-easy-footer/resources/views/**/*';
+
+/* Glassmorphism Styles */
+
+/* Sidebar */
+.fi-sidebar {
+    @apply !bg-white/40 dark:!bg-gray-900/40 !backdrop-blur-md !border-r !border-white/20 dark:!border-white/10 !shadow-lg;
+}
+
+.fi-sidebar-header {
+    @apply !bg-transparent;
+}
+
+/* Animasi Background Active pada Sidebar Navigasi */
+.fi-sidebar-item-btn[data-current] {
+    background-color: transparent !important;
+    position: relative;
+    z-index: 1;
+}
+
+.fi-sidebar-item-btn[data-current]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    /* Transparansi elegan agar tidak merusak glassmorphism sidebar */
+    @apply bg-black/5 dark:bg-white/10;
+    z-index: -1;
+    
+    /* Animasi menyapu dari kiri ke kanan */
+    transform-origin: left;
+    animation: slideActiveNav 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideActiveNav {
+    0% {
+        transform: scaleX(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+
+/* Hover pada Sidebar Item yang Tidak Aktif (Menjaga efek Glassmorphism) */
+.fi-sidebar-item-btn {
+    @apply transition-colors duration-300;
+}
+
+.fi-sidebar-item-btn:not([data-current]):hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.dark .fi-sidebar-item-btn:not([data-current]):hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Topbar */
+.fi-topbar {
+    @apply !bg-white/40 dark:!bg-gray-900/40 !backdrop-blur-md !border-b !border-white/20 dark:!border-white/10 !shadow-sm;
+}
+
+.fi-topbar nav {
+    @apply !bg-transparent;
+}
+
+/* Main Content Area */
+.fi-main {
+    @apply !bg-transparent;
+}
+
+/* Page Transition Animation (Animasi halus saat berpindah halaman navigasi) */
+@keyframes pageLoadTransition {
+    0% {
+        opacity: 0;
+        transform: translateY(15px) scale(0.995);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Terapkan ke semua elemen anak langsung di dalam fi-main. 
+   Saat wire:navigate mengganti halaman, elemen baru akan ter-render dan memicu animasi ini. */
+.fi-main > * {
+    animation: pageLoadTransition 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Cards / Containers / Widgets / Tables / Repeaters / Simple Pages / Tabs */
+.fi-wi-widget, 
+.fi-ta-ctn,
+.fi-sc-ctn,
+.fi-fieldset,
+.fi-section,
+.fi-rep-item,
+.fi-in-repeatable-item,
+.fi-sc-tabs.fi-contained,
+.fi-tabs.fi-contained,
+.fi-empty-state {
+    /* HANYA gunakan focus-within:!z-[90]. hover:!z-[90] DIBUANG agar dropdown tidak tertimpa saat mouse digeser */
+    @apply !bg-white/50 dark:!bg-gray-900/50 !backdrop-blur-lg !border !border-white/30 dark:!border-white/10 !shadow-xl !rounded-xl !relative focus-within:!z-[90];
+}
+
+/* Khusus wadah Login, buat opacity background-nya 0 agar murni blur tanpa warna susu */
+.fi-simple-page-content {
+    @apply !bg-white/0 dark:!bg-gray-900/0;
+}
+
+/* Dropdown Panels & Popovers (Select, Actions, dll) */
+.fi-dropdown-panel {
+    /* Opacity diturunkan drastis agar blur tembus (Gaussian Blur) */
+    @apply !bg-white/30 dark:!bg-gray-900/30 !backdrop-blur-3xl !border !border-white/30 dark:!border-white/10 !shadow-2xl !z-[9999];
+}
+
+/* Pastikan latar belakang layout utama transparan agar gradient <body> terlihat */
+.fi-layout,
+.fi-simple-layout,
+.fi-auth-content-section,
+.fi-auth-form-container,
+.fi-main,
+.fi-sidebar {
+    @apply !bg-transparent;
+}
+
+/* Pastikan elemen anak di dalam dropdown tidak memakai background solid yang menutupi blur */
+.fi-dropdown-list,
+.fi-dropdown-list-item {
+    @apply !bg-transparent;
+}
+
+/* Container pencarian di dropdown dibuat seperti kaca buram tebal agar bisa menutupi list yang sedang di-scroll (Masking) */
+.fi-select-input-search-ctn {
+    @apply !bg-white/80 dark:!bg-gray-900/80 !backdrop-blur-xl border-b !border-white/30 dark:!border-white/10;
+}
+
+/* Berikan warna hover tipis pada opsi yang dipilih/dihover */
+.fi-dropdown-list-item:hover,
+.fi-dropdown-list-item:focus,
+.fi-select-input-option:hover,
+.fi-select-input-option:focus {
+    @apply !bg-white/20 dark:!bg-white/10;
+}
+
+/* Modals (Dipisah agar tidak menyebabkan overflow scroll kiri/kanan/atas/bawah) */
+.fi-modal-window {
+    @apply !bg-white/70 dark:!bg-gray-900/70 !backdrop-blur-2xl !shadow-2xl;
+    /* Kita menghapus !border dan !rounded-xl di sini karena komponen slide-over (seperti notifikasi) 
+       memiliki ukuran 100vh. Menambahkan border akan membuatnya menjadi 100vh + 2px sehingga muncul scrollbar. */
+}
+
+.fi-ta-header, .fi-ta-content {
+    @apply !bg-transparent;
+}
+
+/* Glassmorphism Table Rows (Memperbaiki efek hover yang terlalu putih/solid) */
+.fi-ta-row {
+    @apply transition-colors duration-300;
+}
+
+/* Hover & Selected (Mode Siang: Hitam transparan sangat tipis agar membaur dengan kaca) */
+.fi-ta-row.fi-clickable:hover,
+.fi-ta-row.fi-selected {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Hover & Selected (Mode Malam: Putih transparan sangat tipis) */
+.dark .fi-ta-row.fi-clickable:hover,
+.dark .fi-ta-row.fi-selected {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.fi-section-header,
+.fi-section-content-ctn,
+.fi-section-content {
+    @apply !bg-transparent;
+}
+
+/* Background for the whole app to show the glass effect */
+body {
+    /* Latar belakang utama (Slate 100 -> sedikit lebih kelabu) */
+    background-color: #e2e8f0;
+    /* Bola cahaya Jingga yang LEBIH GELAP dan PEKAT (Rust/Terracotta) */
+    background-image: 
+        radial-gradient(circle at 10% 10%, rgba(170, 70, 20, 0.35) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(140, 50, 15, 0.3) 0%, transparent 45%);
+    background-attachment: fixed;
+}
+
+html.dark body {
+    /* Latar belakang utama sangat gelap (Slate 950 - nyaris hitam) */
+    background-color: #020617;
+    /* Bola cahaya Biru yang LEBIH GELAP (Deep Navy Blue) */
+    background-image: 
+        radial-gradient(circle at 10% 10%, rgba(5, 45, 85, 0.6) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(8, 35, 65, 0.5) 0%, transparent 45%);
+    background-attachment: fixed;
+}
+
+/* Dropdown Panels & Popovers */
+.fi-dropdown-panel,
+.fi-popover {
+    @apply !bg-white/80 dark:!bg-gray-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-white/10 !shadow-2xl !rounded-xl !z-[9999];
+}
+
+/* Glassmorphism Buttons (Dynamic Liquid Glass with Smooth Animations) */
+.fi-btn {
+    --tw-bg-opacity: 0.8 !important;
+    /* Ubah durasi animasi menjadi lebih lama (500ms) dan lebih smooth (ease-out) */
+    @apply !backdrop-blur-xl !border !shadow-sm transition-all duration-500 ease-out;
+    
+    /* GRADIENT ANIMATION HACK:
+       CSS tidak bisa menganimasi perubahan warna gradient secara mulus/halus langsung.
+       Oleh karena itu, kita membuat 1 gradient panjang berukuran 2x lipat (200%), 
+       lalu menggeser posisinya (background-position) saat di-hover. 
+       Ini membuat animasinya menjadi "butter smooth" 60fps! */
+    background-image: linear-gradient(to top, 
+        rgba(var(--c-600), var(--tw-bg-opacity, 1)) 0%, 
+        rgba(var(--c-400), var(--tw-bg-opacity, 1)) 50%,
+        rgba(var(--c-300), var(--tw-bg-opacity, 1)) 100%
+    ) !important;
+    background-size: 100% 200% !important;
+    background-position: bottom !important; /* Secara default (tidak dihover), tampilkan bagian bawah gradient (c-600 ke c-400) */
+    
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .fi-btn {
+    --tw-bg-opacity: 0.7 !important;
+    /* Mode malam: 200% tinggi gradient dari c-700 sampai c-400 */
+    background-image: linear-gradient(to top, 
+        rgba(var(--c-700), var(--tw-bg-opacity, 1)) 0%, 
+        rgba(var(--c-500), var(--tw-bg-opacity, 1)) 50%,
+        rgba(var(--c-400), var(--tw-bg-opacity, 1)) 100%
+    ) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.fi-btn:hover {
+    --tw-bg-opacity: 0.95 !important;
+    /* Saat dihover, geser gradient ke atas (menampilkan bagian terang: c-400 ke c-300) secara sangat smooth */
+    background-position: top !important;
+    
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 8px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.dark .fi-btn:hover {
+    --tw-bg-opacity: 0.9 !important;
+    background-position: top !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 8px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Inputs & Form Fields */
+.fi-input-wrp, 
+.fi-select-wrp,
+.fi-textarea-wrp {
+    @apply !bg-white/40 dark:!bg-gray-900/40 !backdrop-blur-lg !border !shadow-inner transition-all duration-300 !relative focus-within:!z-[999] hover:!z-[999];
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+.dark .fi-input-wrp, 
+.dark .fi-select-wrp,
+.dark .fi-textarea-wrp {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Pastikan opsi select tidak transparan */
+.fi-select-wrp select > option {
+    @apply !bg-white dark:!bg-gray-900 !text-gray-900 dark:!text-gray-100;
+}
+
+/* Glassmorphism Badges */
+.fi-badge {
+    @apply !backdrop-blur-md !border !shadow-sm transition-all duration-300;
+    
+    /* Mode Siang: Gradient warna bawaan yang ditipiskan (70% opacity) agar membaur dengan latar */
+    background-image: linear-gradient(135deg, rgba(var(--c-100), 0.7) 0%, rgba(var(--c-200), 0.7) 100%) !important;
+    border-color: rgba(var(--c-400), 0.3) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+    /* Hilangkan background color bawaan agar gradient bisa terlihat jelas */
+    background-color: transparent !important;
+}
+
+.dark .fi-badge {
+    /* Mode Malam: Warna lebih dalam (deep) dengan transparansi tinggi (15%-25%) */
+    background-image: linear-gradient(135deg, rgba(var(--c-500), 0.15) 0%, rgba(var(--c-600), 0.25) 100%) !important;
+    border-color: rgba(var(--c-500), 0.3) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix Chrome Autofill Background on Glassmorphism Inputs */
+.fi-input:-webkit-autofill,
+.fi-input:-webkit-autofill:hover, 
+.fi-input:-webkit-autofill:focus, 
+.fi-input:-webkit-autofill:active {
+    transition: background-color 9999s ease-in-out 0s !important;
+    -webkit-text-fill-color: inherit !important;
+}
+
+/* Meningkatkan Kontras Teks Placeholder (Kosong) pada Tabel */
+.fi-ta-placeholder {
+    @apply !text-gray-700 dark:!text-gray-400;
+}
+
+/* Meningkatkan Kontras Teks Deskripsi Tambahan pada Tabel (menimpa text-gray-500 bawaan) */
+.fi-ta-text-description,
+.fi-ta-text-description * {
+    @apply !text-gray-700 dark:!text-gray-400;
+}
+
+/* Meningkatkan Kontras Teks pada Empty State */
+.fi-empty-state-heading {
+    @apply !text-gray-900 dark:!text-gray-100;
+}
+
+.fi-empty-state-description {
+    @apply !text-gray-700 dark:!text-gray-300;
+}
+
+/* Meningkatkan Kontras Placeholder (baik native ::placeholder maupun span dari Select Input) */
+.fi-input::placeholder,
+.fi-textarea::placeholder,
+.fi-select-input::placeholder,
+.fi-select-input-placeholder,
+.fi-fo-date-time-picker-display-text-input::placeholder {
+    /* Pertegas warna placeholder dan paksa opasitas 100% karena browser sering memudarkan placeholder secara default */
+    @apply !text-gray-400 dark:!text-gray-400 !opacity-100;
+}
+
+/* Memperjelas teks dan placeholder pada Input yang statusnya Disabled (Tidak Bisa Diedit) */
+.fi-disabled {
+    opacity: 0.85 !important; /* Jangan terlalu pudar */
+}
+
+.fi-input:disabled,
+.fi-textarea:disabled,
+.fi-select-input:disabled,
+.fi-fo-date-time-picker-display-text-input:disabled,
+.fi-input:disabled::placeholder,
+.fi-textarea:disabled::placeholder,
+.fi-select-input:disabled::placeholder,
+.fi-fo-date-time-picker-display-text-input:disabled::placeholder {
+    @apply !text-gray-400 dark:!text-gray-400;
+}
+
+/* Mengatasi bug Select / DatePicker Panel tertimpa komponen di bawahnya */
+/* Saat sebuah field sedang aktif/fokus, angkat z-index nya ke paling atas */
+.fi-fo-field:focus-within,
+.fi-sc-component:focus-within,
+.fi-input-wrp:focus-within {
+    z-index: 999 !important;
+    position: relative;
+}
+
+/* Mempertegas Efek Hover pada List/Opsi di Dropdown (Mode Terang & Gelap) */
+.fi-dropdown-list-item:hover,
+.fi-dropdown-list-item:focus,
+.fi-dropdown-list-item.fi-focused,
+.fi-select-input-option:hover,
+.fi-select-input-option:focus,
+.fi-select-input-option.fi-focused {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    transition: background-color 0.2s ease;
+}
+
+.dark .fi-dropdown-list-item:hover,
+.dark .fi-dropdown-list-item:focus,
+.dark .fi-dropdown-list-item.fi-focused,
+.dark .fi-select-input-option:hover,
+.dark .fi-select-input-option:focus,
+.dark .fi-select-input-option.fi-focused {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* =========================================================
+   D. STYLING INPUT AGAR LEBIH MENARIK (PREMIUM & GLASS)
+   ========================================================= */
+
+/* Wadah Input (Input Wrapper) - Beri efek kaca transparan yang lembut */
+.fi-input-wrp {
+    @apply !bg-white/40 dark:!bg-gray-800/40 !backdrop-blur-md !border !border-white/40 dark:!border-white/10 !shadow-sm !rounded-xl transition-all duration-300;
+}
+
+/* Saat Input sedang aktif (fokus), beri cahaya/glowing glow yang mulus */
+.fi-input-wrp:focus-within {
+    @apply !ring-2 !ring-primary-500/50 !border-primary-500/50 !shadow-md !bg-white/60 dark:!bg-gray-800/60;
+}
+
+/* Pastikan background input aslinya transparan agar warna glass dari wrapper terlihat */
+.fi-input, 
+.fi-textarea, 
+.fi-select-input,
+.fi-fo-date-time-picker-display-text-input,
+.fi-select-input-btn {
+    @apply !bg-transparent;
+}
+
+/* =========================================================
+   E. STYLING DROPDOWN/SELECT AGAR LEBIH MENARIK
+   ========================================================= */
+
+/* Beri jarak/padding di dalam dropdown agar item tidak menempel ke tepi */
+.fi-dropdown-list {
+    @apply p-2;
+}
+
+/* Buat item di dalam dropdown (opsi) menjadi seperti pil/gelembung (rounded) */
+.fi-dropdown-list-item,
+.fi-select-input-option {
+    @apply rounded-lg mb-1 px-3 py-2 transition-colors duration-200;
+}
+
+/* Hilangkan margin bawah untuk item terakhir */
+.fi-dropdown-list-item:last-child,
+.fi-select-input-option:last-child {
+    @apply mb-0;
+}
