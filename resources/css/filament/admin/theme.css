@@ -97,8 +97,9 @@
     animation: pageLoadTransition 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Cards / Containers / Widgets / Tables / Repeaters / Simple Pages / Tabs */
+/* Cards / Containers / Widgets / Tables / Repeaters / Simple Pages / Tabs / Stats */
 .fi-wi-widget, 
+.fi-wi-stats-overview-stat,
 .fi-ta-ctn,
 .fi-sc-ctn,
 .fi-fieldset,
@@ -112,9 +113,27 @@
     @apply !bg-white/50 dark:!bg-gray-900/50 !backdrop-blur-lg !border !border-white/30 dark:!border-white/10 !shadow-xl !rounded-xl !relative focus-within:!z-[90];
 }
 
+/* Hilangkan background dan border dari parent container Stats Overview 
+   agar kotak stats benar-benar melayang terpisah dan tidak ada garis yang menyambungkannya */
+.fi-wi-widget:has(.fi-wi-stats-overview-stat),
+.fi-section:has(.fi-wi-stats-overview-stat) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
 /* Khusus wadah Login, buat opacity background-nya 0 agar murni blur tanpa warna susu */
 .fi-simple-page-content {
     @apply !bg-white/0 dark:!bg-gray-900/0;
+}
+
+/* Memaksa elemen description di dalam stat widget agar merentang 100% lebarnya 
+   sehingga teks di dalamnya bisa rata kanan (text-right) */
+.fi-wi-stats-overview-stat-description,
+.fi-wi-stats-overview-stat-description > span {
+    width: 100% !important;
+    display: block !important;
 }
 
 /* Dropdown Panels & Popovers (Select, Actions, dll) */

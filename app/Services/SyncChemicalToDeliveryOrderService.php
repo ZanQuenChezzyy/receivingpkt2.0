@@ -59,6 +59,11 @@ class SyncChemicalToDeliveryOrderService
                     'material_code' => $po->getAttribute('material_code'),
                     'description' => $po->getAttribute('description'),
                     'uoi' => $po->getAttribute('uoi'),
+                    'mrp_type' => $po->getAttribute('mrp_type'),
+                    'material_type' => $po->getAttribute('material_type'),
+                    'aac' => $po->getAttribute('aac'),
+                    'abc_indicator' => $po->getAttribute('abc_indicator'),
+                    'requisitioner' => $po->getAttribute('requisitioner'),
                     'location_id' => $detailRow->location_id,
                     'is_qty_tolerance' => $detailRow->is_qty_tolerance ?? false,
                 ])->save();
