@@ -16,11 +16,11 @@ class GrsRdtvForm
         return $schema
             ->components([
                 Section::make('Informasi GRS & RDTV')
-                    ->description('Pilih tanggal eksekusi dan kategori dokumen penagihan')
+                    ->description('Pilih Tanggal Transaksi dan kategori dokumen penagihan')
                     ->icon('heroicon-o-information-circle')
                     ->schema([
                         DatePicker::make('transaction_date')
-                            ->label('Tanggal Eksekusi')
+                            ->label('Tanggal Transaksi')
                             ->placeholder('Masukkan Tanggal')
                             ->native(false)
                             ->prefixIcon('heroicon-m-calendar')

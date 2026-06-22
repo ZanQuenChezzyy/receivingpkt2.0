@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GrsRdtvs\RelationManagers;
 
+use App\Filament\Resources\DeliveryOrderReceipts\DeliveryOrderReceiptResource;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -66,6 +67,7 @@ class GrsRdtvItemsRelationManager extends RelationManager
                     ->color('primary')
                     ->weight(FontWeight::Bold)
                     ->getStateUsing(fn ($record) => $record->deliveryOrderReceipt?->deliveryOrderReceiptDetails?->first()?->purchaseOrderIssued?->purchase_order_no ?? '-')
+                    ->url(fn ($record) => $record->delivery_order_receipt_id ? DeliveryOrderReceiptResource::getUrl('view', ['record' => $record->delivery_order_receipt_id]) : null)
                     ->searchable(query: function (Builder $query, string $search) {
                         $query->whereHas('deliveryOrderReceipt.deliveryOrderReceiptDetails.purchaseOrderIssued', function ($q) use ($search) {
                             $q->where('purchase_order_no', 'like', "%{$search}%");

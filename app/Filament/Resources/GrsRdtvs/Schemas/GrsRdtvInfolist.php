@@ -20,7 +20,7 @@ class GrsRdtvInfolist
                     ->schema([
                         Grid::make(3)->schema([
                             TextEntry::make('transaction_date')
-                                ->label('Tanggal Eksekusi')
+                                ->label('Tanggal Transaksi')
                                 ->icon('heroicon-m-calendar')
                                 ->date('d F Y')
                                 ->weight(FontWeight::Bold),

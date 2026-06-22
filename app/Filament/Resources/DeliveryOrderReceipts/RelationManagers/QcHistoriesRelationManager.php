@@ -2,22 +2,25 @@
 
 namespace App\Filament\Resources\DeliveryOrderReceipts\RelationManagers;
 
+use App\Models\Transmittal;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class QcHistoriesRelationManager extends RelationManager
 {
     protected static string $relationship = 'qcHistories';
+
+    protected static ?string $title = 'Riwayat QC';
 
     public function isReadOnly(): bool
     {
@@ -89,7 +92,7 @@ class QcHistoriesRelationManager extends RelationManager
                     ->modalDescription(fn ($record) => str_contains($record->notes ?? '', 'No: TRM-') ? 'Riwayat ini terhubung dengan Transmittal. Menghapus log ini juga akan otomatis mengeluarkan DO dari Transmittal tersebut. Anda yakin?' : 'Anda yakin ingin menghapus riwayat ini?')
                     ->before(function ($record, RelationManager $livewire) {
                         if (preg_match('/No: (TRM-[A-Z0-9-]+)\)/', $record->notes ?? '', $matches)) {
-                            $transmittal = \App\Models\Transmittal::where('transmittal_no', $matches[1])->first();
+                            $transmittal = Transmittal::where('transmittal_no', $matches[1])->first();
                             if ($transmittal) {
                                 $livewire->getOwnerRecord()->transmittals()->detach($transmittal->id);
                             }
@@ -99,10 +102,10 @@ class QcHistoriesRelationManager extends RelationManager
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->before(function (\Illuminate\Database\Eloquent\Collection $records, RelationManager $livewire) {
+                        ->before(function (Collection $records, RelationManager $livewire) {
                             foreach ($records as $record) {
                                 if (preg_match('/No: (TRM-[A-Z0-9-]+)\)/', $record->notes ?? '', $matches)) {
-                                    $transmittal = \App\Models\Transmittal::where('transmittal_no', $matches[1])->first();
+                                    $transmittal = Transmittal::where('transmittal_no', $matches[1])->first();
                                     if ($transmittal) {
                                         $livewire->getOwnerRecord()->transmittals()->detach($transmittal->id);
                                     }

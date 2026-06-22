@@ -35,7 +35,12 @@ class DeliveryOrderReceiptsTable
                         ->color('primary')
                         ->weight(FontWeight::Bold)
                         ->getStateUsing(fn ($record) => $record->deliveryOrderReceiptDetails->first()?->purchaseOrderIssued?->purchase_order_no ?? 'Tanpa PO')
-                        ->description(fn ($record) => new HtmlString("<span class='text-gray-500 font-medium'>DO: {$record->delivery_oder_no}</span>"))
+                        ->description(function ($record) {
+                            $doInfo = "<span class='text-gray-500 font-medium'>DO: {$record->delivery_oder_no}</span>";
+                            $seqInfo = $record->arrival_sequence ? "<br><span class='text-blue-600 text-xs font-bold'>Kedatangan Ke-{$record->arrival_sequence}</span>" : '';
+
+                            return new HtmlString($doInfo.$seqInfo);
+                        })
                         ->searchable(query: function (Builder $query, string $search) {
                             $query->where('delivery_oder_no', 'like', "%{$search}%")
                                 ->orWhereHas('deliveryOrderReceiptDetails.purchaseOrderIssued', function ($q) use ($search) {
@@ -204,6 +209,25 @@ class DeliveryOrderReceiptsTable
                         ->description(fn ($record) => $record->post_103 ? Carbon::parse($record->post_103)->format('d M Y - H:i') : 'Menunggu aksi')
                         ->color(fn ($state) => $state ? 'success' : 'gray')
                         ->icon(fn ($state) => $state ? 'heroicon-m-check-badge' : 'heroicon-m-clock')
+                        ->toggleable(isToggledHiddenByDefault: true)
+                        ->sortable(),
+
+                    TextColumn::make('is_physically_received')
+                        ->label('Kedatangan Fisik')
+                        ->getStateUsing(fn ($record) => $record->receipt_mode === 'Standard' ? true : $record->is_physically_received)
+                        ->formatStateUsing(fn ($state) => $state ? 'Fisik Tiba' : 'Menunggu / Transit')
+                        ->badge()
+                        ->color(fn ($state) => $state ? 'success' : 'warning')
+                        ->icon(fn ($state) => $state ? 'heroicon-m-check-badge' : 'heroicon-m-truck')
+                        ->description(function ($record) {
+                            if ($record->receipt_mode === 'Standard' || $record->is_physically_received) {
+                                return null;
+                            }
+                            $loc = $record->current_location ?? 'Transit';
+                            $incoterm = $record->incoterms ? " ({$record->incoterms})" : '';
+
+                            return new HtmlString("<span class='text-xs'>Posisi: {$loc}{$incoterm}</span>");
+                        })
                         ->toggleable(isToggledHiddenByDefault: true)
                         ->sortable(),
                 ]),

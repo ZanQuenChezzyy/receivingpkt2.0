@@ -84,14 +84,17 @@
     }
     100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: none; /* INI KUNCI UTAMANYA: Harus 'none' agar tidak menjebak ukuran overlay (fixed element) */
     }
 }
 
 /* Terapkan ke semua elemen anak langsung di dalam fi-main. 
    Saat wire:navigate mengganti halaman, elemen baru akan ter-render dan memicu animasi ini. */
 .fi-main > * {
-    animation: pageLoadTransition 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Tentukan state akhir secara manual sebagai default agar kita tidak butuh 'forwards' */
+    opacity: 1;
+    transform: none;
+    animation: pageLoadTransition 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Cards / Containers / Widgets / Tables / Repeaters / Simple Pages / Tabs */
@@ -156,6 +159,12 @@
        memiliki ukuran 100vh. Menambahkan border akan membuatnya menjadi 100vh + 2px sehingga muncul scrollbar. */
 }
 
+/* Efek Gelap dan Blur Kaca pada Latar Belakang Modal */
+/* Menggunakan .fi-modal-close-overlay karena ia sudah memiliki properti fixed inset-0 z-40 bawaan yang menutupi seluruh layar */
+.fi-modal-close-overlay {
+    @apply !bg-gray-900/40 dark:!bg-gray-900/60 !backdrop-blur-md;
+}
+
 .fi-ta-header, .fi-ta-content {
     @apply !bg-transparent;
 }
@@ -204,10 +213,18 @@ html.dark body {
     background-attachment: fixed;
 }
 
-/* Dropdown Panels & Popovers */
+/* Dropdown Panels, Popovers, & Global Search Results */
 .fi-dropdown-panel,
-.fi-popover {
+.fi-popover,
+.fi-global-search-results-ctn {
     @apply !bg-white/80 dark:!bg-gray-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-white/10 !shadow-2xl !rounded-xl !z-[9999];
+}
+
+/* Pastikan bagian dalam global search transparan */
+.fi-global-search-results,
+.fi-global-search-results > div,
+.fi-global-search-results ul {
+    @apply !bg-transparent;
 }
 
 /* Glassmorphism Buttons (Dynamic Liquid Glass with Smooth Animations) */
