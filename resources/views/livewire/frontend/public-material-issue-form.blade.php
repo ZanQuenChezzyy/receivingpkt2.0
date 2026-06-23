@@ -317,7 +317,7 @@
                         </div>
                         <div class="flex-1">
                             <span class="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                                Saya menyatakan bahwa saya telah mengisi data di atas dengan sebenar-benarnya dan setuju untuk menandatangani dokumen serah terima pengambilan secara fisik di Gudang Transit (Receiving).
+                                Saya menyatakan bahwa saya telah mengisi data di atas dengan sebenar-benarnya dan setuju untuk menandatangani dokumen serah terima pengambilan secara fisik di Gudang Receiving.
                             </span>
                             @error('agreement') <span class="text-red-500 text-xs font-bold mt-1.5 block">{{ $message }}</span> @enderror
                         </div>
