@@ -26,6 +26,7 @@ class MaterialIssue extends Model
         'npk',
         'diminta_signature',
         'disetujui_oleh',
+        'disetujui_npk',
         'disetujui_signature',
         'diketahui_oleh',
         'diserahkan_oleh',

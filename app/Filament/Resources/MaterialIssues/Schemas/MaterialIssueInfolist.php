@@ -60,10 +60,11 @@ class MaterialIssueInfolist
                     Section::make('Tanda Tangan (Fisik / Digital)')
                         ->icon('heroicon-o-pencil')
                         ->schema([
-                            Grid::make(6)->schema([
+                            Grid::make(7)->schema([
                                 TextEntry::make('diminta_oleh')->label('Diminta Oleh'),
                                 TextEntry::make('npk')->label('NPK'),
                                 TextEntry::make('disetujui_oleh')->label('Disetujui Oleh (ISTEK)'),
+                                TextEntry::make('disetujui_npk')->label('NPK ISTEK'),
                                 TextEntry::make('diketahui_oleh')->label('Diketahui Oleh'),
                                 TextEntry::make('diserahkan_oleh')->label('Diserahkan Oleh'),
                                 TextEntry::make('diterima_oleh')->label('Diterima Oleh'),

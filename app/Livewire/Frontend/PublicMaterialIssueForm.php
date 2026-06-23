@@ -24,6 +24,7 @@ class PublicMaterialIssueForm extends Component
     // Signatures
     public $diminta_signature = null;
     public $disetujui_oleh = '';
+    public $disetujui_npk = '';
     public $disetujui_signature = null;
     public $requiresIstekSignature = false;
     
@@ -241,6 +242,7 @@ class PublicMaterialIssueForm extends Component
         
         if ($this->requiresIstekSignature) {
             $rules['disetujui_oleh'] = 'required|string';
+            $rules['disetujui_npk'] = 'required|string';
             $rules['disetujui_signature'] = 'required|string';
         }
         
@@ -258,6 +260,7 @@ class PublicMaterialIssueForm extends Component
             'agreement.accepted' => 'Anda harus menyetujui pernyataan ini sebelum mengirim form.',
             'diminta_signature.required' => 'Tanda tangan peminta wajib diisi.',
             'disetujui_oleh.required' => 'Nama ISTEK wajib diisi karena ada barang yang belum GRS.',
+            'disetujui_npk.required' => 'NPK ISTEK wajib diisi.',
             'disetujui_signature.required' => 'Tanda tangan ISTEK wajib diisi karena ada barang yang belum GRS.',
         ];
     }
@@ -293,6 +296,7 @@ class PublicMaterialIssueForm extends Component
                 'diminta_signature' => $this->diminta_signature,
                 'diterima_oleh' => $this->diterima_oleh,
                 'disetujui_oleh' => $this->requiresIstekSignature ? $this->disetujui_oleh : null,
+                'disetujui_npk' => $this->requiresIstekSignature ? $this->disetujui_npk : null,
                 'disetujui_signature' => $this->requiresIstekSignature ? $this->disetujui_signature : null,
                 'created_by' => null,
             ]);
@@ -344,6 +348,7 @@ class PublicMaterialIssueForm extends Component
             $this->digunakan_untuk = '';
             $this->diminta_signature = null;
             $this->disetujui_oleh = '';
+            $this->disetujui_npk = '';
             $this->disetujui_signature = null;
             $this->agreement = false;
             $this->details = [];

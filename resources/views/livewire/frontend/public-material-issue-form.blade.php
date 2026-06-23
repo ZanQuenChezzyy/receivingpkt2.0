@@ -350,11 +350,22 @@
                             <span class="text-xs font-bold">Barang Belum GRS (Butuh Izin)</span>
                         </div>
                         
-                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">
-                            Nama ISTEK (Penyetuju) <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" wire:model="disetujui_oleh" class="block w-full text-base font-medium bg-white/50 dark:bg-black/20 backdrop-blur-md border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#F47920]/50 focus:border-[#F47920] focus:bg-white dark:focus:bg-slate-900/60 transition-all shadow-sm mb-3" placeholder="Masukkan nama User/ISTEK...">
-                        @error('disetujui_oleh') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                        <div class="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-3">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                    Nama Pihak ISTEK (Penyetuju) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" wire:model="disetujui_oleh" class="block w-full text-base font-medium bg-white/50 dark:bg-black/20 backdrop-blur-md border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#F47920]/50 focus:border-[#F47920] focus:bg-white dark:focus:bg-slate-900/60 transition-all shadow-sm" placeholder="Masukkan nama User/ISTEK...">
+                                @error('disetujui_oleh') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                    NPK Pihak ISTEK <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" wire:model="disetujui_npk" class="block w-full text-base font-medium bg-white/50 dark:bg-black/20 backdrop-blur-md border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#F47920]/50 focus:border-[#F47920] focus:bg-white dark:focus:bg-slate-900/60 transition-all shadow-sm" placeholder="NPK User/ISTEK...">
+                                @error('disetujui_npk') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                         
                         <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mt-4">
                             Tanda Tangan ISTEK <span class="text-red-500">*</span>

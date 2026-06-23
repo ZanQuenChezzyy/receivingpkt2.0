@@ -216,7 +216,7 @@
                 </tr>
                 <tr>
                     <td>NPK: {{ $record->npk }}</td>
-                    <td>NPK:</td>
+                    <td>NPK: {{ $record->disetujui_npk }}</td>
                     <td>NPK:</td>
                     <td>NPK:</td>
                     <td>NPK: {{ $record->npk }}</td>

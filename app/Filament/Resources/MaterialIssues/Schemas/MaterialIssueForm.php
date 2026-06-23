@@ -10,6 +10,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -59,9 +60,9 @@ class MaterialIssueForm
                                             ->pluck('purchase_order_no', 'id')
                                             ->toArray();
                                     })
-                                    ->getOptionLabelUsing(fn ($value): ?string => PurchaseOrderIssued::find($value)?->purchase_order_no)
+                                    ->getOptionLabelUsing(fn($value): ?string => PurchaseOrderIssued::find($value)?->purchase_order_no)
                                     ->live()
-                                    ->afterStateUpdated(fn (Set $set) => $set('materialIssueDetails', [])),
+                                    ->afterStateUpdated(fn(Set $set) => $set('materialIssueDetails', [])),
                             ]),
                             Grid::make(3)->schema([
                                 TextInput::make('no_hp')->label('No. Hp')->required(),
@@ -96,11 +97,11 @@ class MaterialIssueForm
                                             ->prefixIcon('heroicon-m-hashtag')
                                             ->options(function (Get $get) {
                                                 $poId = $get('../../purchase_order_issued_id');
-                                                if (! $poId) {
+                                                if (!$poId) {
                                                     return [];
                                                 }
                                                 $poItem = PurchaseOrderIssued::find($poId);
-                                                if (! $poItem) {
+                                                if (!$poItem) {
                                                     return [];
                                                 }
                                                 $allPoItemIds = PurchaseOrderIssued::where('purchase_order_no', $poItem->purchase_order_no)->pluck('id');
@@ -162,7 +163,7 @@ class MaterialIssueForm
                                             ->label('Qty Diminta')
                                             ->numeric()
                                             ->required()
-                                            ->suffix(fn (Get $get) => $get('uoi') ?? '')
+                                            ->suffix(fn(Get $get) => $get('uoi') ?? '')
                                             ->rule(function (Get $get) {
                                                 return function (string $attribute, $value, \Closure $fail) use ($get) {
                                                     $boh = (float) $get('boh');
@@ -177,7 +178,7 @@ class MaterialIssueForm
                                             ->label('Qty Diserahkan')
                                             ->numeric()
                                             ->required()
-                                            ->suffix(fn (Get $get) => $get('uoi') ?? '')
+                                            ->suffix(fn(Get $get) => $get('uoi') ?? '')
                                             ->rule(function (Get $get) {
                                                 return function (string $attribute, $value, \Closure $fail) use ($get) {
                                                     $boh = (float) $get('boh');
@@ -192,33 +193,34 @@ class MaterialIssueForm
                                             ->label('Sisa BOH (Jika Ada)')
                                             ->numeric()
                                             ->readOnly()
-                                            ->suffix(fn (Get $get) => $get('uoi') ?? '')
+                                            ->suffix(fn(Get $get) => $get('uoi') ?? '')
                                             ->columnSpan(2),
                                     ]),
                                 ])
                                 ->columnSpanFull()
-                                ->hidden(fn (Get $get): bool => empty($get('purchase_order_issued_id'))),
+                                ->hidden(fn(Get $get): bool => empty($get('purchase_order_issued_id'))),
                         ]),
 
                     Section::make('Tanda Tangan (Fisik / Digital)')
                         ->icon(Heroicon::OutlinedPencil)
                         ->description('Catat nama pihak yang bertanda tangan di formulir fisik atau lihat tanda tangan digital MIR.')
                         ->schema([
-                            Grid::make(6)->schema([
+                            Grid::make(7)->schema([
                                 TextInput::make('diminta_oleh')->label('Diminta Oleh'),
                                 TextInput::make('npk')->label('NPK'),
                                 TextInput::make('disetujui_oleh')->label('Disetujui Oleh (ISTEK)'),
+                                TextInput::make('disetujui_npk')->label('NPK ISTEK'),
                                 TextInput::make('diketahui_oleh')->label('Diketahui Oleh'),
                                 TextInput::make('diserahkan_oleh')->label('Diserahkan (Receiving)'),
                                 TextInput::make('diterima_oleh')->label('Diterima Oleh'),
                             ]),
                             Grid::make(2)->schema([
-                                Placeholder::make('diminta_signature')
+                                TextEntry::make('diminta_signature')
                                     ->label('Tanda Tangan Peminta (Digital)')
-                                    ->content(fn ($record) => $record?->diminta_signature ? new \Illuminate\Support\HtmlString('<img src="'.$record->diminta_signature.'" style="max-height: 100px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px; background: white;">') : 'Tidak Ada Tanda Tangan Digital'),
-                                Placeholder::make('disetujui_signature')
+                                    ->state(fn($record) => $record?->diminta_signature ? new \Illuminate\Support\HtmlString('<img src="' . $record->diminta_signature . '" style="max-height: 100px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px; background: white;">') : 'Tidak Ada Tanda Tangan Digital'),
+                                TextEntry::make('disetujui_signature')
                                     ->label('Tanda Tangan ISTEK (Digital)')
-                                    ->content(fn ($record) => $record?->disetujui_signature ? new \Illuminate\Support\HtmlString('<img src="'.$record->disetujui_signature.'" style="max-height: 100px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px; background: white;">') : 'Tidak Ada Tanda Tangan Digital'),
+                                    ->state(fn($record) => $record?->disetujui_signature ? new \Illuminate\Support\HtmlString('<img src="' . $record->disetujui_signature . '" style="max-height: 100px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px; background: white;">') : 'Tidak Ada Tanda Tangan Digital'),
                             ]),
                         ]),
                 ])->columnSpanFull(),
