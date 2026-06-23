@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class MaterialIssue extends Model
 {
@@ -22,7 +23,10 @@ class MaterialIssue extends Model
         'no_alat',
         'kode_biaya',
         'diminta_oleh',
+        'npk',
+        'diminta_signature',
         'disetujui_oleh',
+        'disetujui_signature',
         'diketahui_oleh',
         'diserahkan_oleh',
         'diterima_oleh',
@@ -53,8 +57,8 @@ class MaterialIssue extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (empty($model->created_by) && auth()->check()) {
-                $model->created_by = auth()->id();
+            if (empty($model->created_by) && Auth::check()) {
+                $model->created_by = Auth::id();
             }
 
             if (empty($model->mir_number)) {
@@ -65,7 +69,7 @@ class MaterialIssue extends Model
                     $parts = explode('/', $lastRecord->mir_number);
                     $nextId = (int) end($parts) + 1;
                 }
-                $model->mir_number = "MIR/{$month}/".str_pad($nextId, 4, '0', STR_PAD_LEFT);
+                $model->mir_number = "MIR/{$month}/" . str_pad($nextId, 4, '0', STR_PAD_LEFT);
             }
         });
     }

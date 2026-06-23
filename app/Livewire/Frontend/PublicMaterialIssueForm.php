@@ -3,6 +3,7 @@
 namespace App\Livewire\Frontend;
 
 use Livewire\Component;
+use Livewire\Attributes\Url;
 use App\Models\MaterialIssue;
 use App\Models\MaterialIssueDetail;
 use App\Models\DeliveryOrderReceiptDetail;
@@ -14,10 +15,17 @@ class PublicMaterialIssueForm extends Component
 {
     // Form Properties
     public $diminta_oleh = '';
+    public $npk = '';
     public $diterima_oleh = '';
     public $no_hp = '';
     public $departemen = '';
     public $bagian = '';
+    
+    // Signatures
+    public $diminta_signature = null;
+    public $disetujui_oleh = '';
+    public $disetujui_signature = null;
+    public $requiresIstekSignature = false;
     
     public $tanggal = '';
     public $purchase_order_issued_id = '';
@@ -31,6 +39,7 @@ class PublicMaterialIssueForm extends Component
     public $details = [];
 
     // Search properties
+    #[Url(as: 'po')]
     public $po_search = '';
     public $available_pos = [];
     public $available_po_items = [];
@@ -43,6 +52,14 @@ class PublicMaterialIssueForm extends Component
         $this->tanggal = now()->format('Y-m-d');
         $this->addDetail();
         $this->searchPOs();
+
+        if (!empty($this->po_search) && count($this->available_pos) > 0) {
+            $matchedPo = collect($this->available_pos)->firstWhere('purchase_order_no', $this->po_search);
+            if ($matchedPo) {
+                $this->purchase_order_issued_id = $matchedPo->id;
+                $this->updatedPurchaseOrderIssuedId($this->purchase_order_issued_id);
+            }
+        }
     }
 
     public function updatedDimintaOleh($value)
@@ -72,7 +89,7 @@ class PublicMaterialIssueForm extends Component
             $poItem = PurchaseOrderIssued::find($id);
             if ($poItem) {
                 $allPoItemIds = PurchaseOrderIssued::where('purchase_order_no', $poItem->purchase_order_no)->pluck('id');
-                $rawItems = DeliveryOrderReceiptDetail::with('locationReceiving')
+                $rawItems = DeliveryOrderReceiptDetail::with(['locationReceiving', 'deliveryOrderReceipt'])
                     ->whereIn('purchase_order_issued_id', $allPoItemIds)
                     ->get();
                     
@@ -85,6 +102,10 @@ class PublicMaterialIssueForm extends Component
                     
                     $locations = $group->map(fn($i) => $i->locationReceiving?->name)->filter()->unique()->implode(', ');
                     
+                    $has_non_grs = $group->contains(function ($item) {
+                        return $item->deliveryOrderReceipt && $item->deliveryOrderReceipt->document_code !== '105';
+                    });
+                    
                     return [
                         'id' => $first->purchase_order_issued_id, // Store as PO issued ID
                         'item_no' => $first->item_no,
@@ -93,6 +114,7 @@ class PublicMaterialIssueForm extends Component
                         'uoi' => $first->uoi,
                         'combined_boh' => $combined_boh,
                         'combined_locations' => $locations ?: 'Belum Diatur',
+                        'has_non_grs' => $has_non_grs,
                     ];
                 })->values()->toArray();
             } else {
@@ -140,6 +162,8 @@ class PublicMaterialIssueForm extends Component
                 $this->details[$index]['diserahkan'] = $value;
             }
         }
+        
+        $this->checkIfIstekSignatureRequired();
     }
 
     public function addDetail()
@@ -155,19 +179,39 @@ class PublicMaterialIssueForm extends Component
             'boh' => 0,
         ];
     }
-
+    
     public function removeDetail($index)
     {
         if (count($this->details) > 1) {
             unset($this->details[$index]);
             $this->details = array_values($this->details);
+            $this->checkIfIstekSignatureRequired();
         }
+    }
+    
+    protected function checkIfIstekSignatureRequired()
+    {
+        $requires = false;
+        foreach ($this->details as $detail) {
+            $detailId = $detail['delivery_order_receipt_detail_id'] ?? null;
+            if ($detailId) {
+                $item = collect($this->available_po_items)->firstWhere('id', (int)$detailId) 
+                     ?? collect($this->available_po_items)->firstWhere('id', (string)$detailId);
+                     
+                if ($item && !empty($item['has_non_grs'])) {
+                    $requires = true;
+                    break;
+                }
+            }
+        }
+        $this->requiresIstekSignature = $requires;
     }
 
     public function rules()
     {
-        return [
+        $rules = [
             'diminta_oleh' => 'required|string',
+            'npk' => 'required|string',
             'diterima_oleh' => 'required|string',
             'no_hp' => 'required|string',
             'departemen' => 'required|string',
@@ -176,6 +220,7 @@ class PublicMaterialIssueForm extends Component
             'purchase_order_issued_id' => 'required',
             'digunakan_untuk' => 'required|string',
             'agreement' => 'accepted',
+            'diminta_signature' => 'required|string',
             'details.*.delivery_order_receipt_detail_id' => 'required',
             'details.*.diminta' => [
                 'required',
@@ -193,6 +238,13 @@ class PublicMaterialIssueForm extends Component
             ],
             'details.*.diserahkan' => 'required|numeric',
         ];
+        
+        if ($this->requiresIstekSignature) {
+            $rules['disetujui_oleh'] = 'required|string';
+            $rules['disetujui_signature'] = 'required|string';
+        }
+        
+        return $rules;
     }
 
     public function messages()
@@ -204,6 +256,9 @@ class PublicMaterialIssueForm extends Component
             'details.*.diminta.numeric' => 'Qty harus berupa angka.',
             'details.*.diminta.min' => 'Qty harus lebih dari 0.',
             'agreement.accepted' => 'Anda harus menyetujui pernyataan ini sebelum mengirim form.',
+            'diminta_signature.required' => 'Tanda tangan peminta wajib diisi.',
+            'disetujui_oleh.required' => 'Nama ISTEK wajib diisi karena ada barang yang belum GRS.',
+            'disetujui_signature.required' => 'Tanda tangan ISTEK wajib diisi karena ada barang yang belum GRS.',
         ];
     }
 
@@ -234,7 +289,12 @@ class PublicMaterialIssueForm extends Component
                 'no_alat' => $this->no_alat,
                 'kode_biaya' => $this->kode_biaya,
                 'diminta_oleh' => $this->diminta_oleh,
+                'npk' => $this->npk,
+                'diminta_signature' => $this->diminta_signature,
                 'diterima_oleh' => $this->diterima_oleh,
+                'disetujui_oleh' => $this->requiresIstekSignature ? $this->disetujui_oleh : null,
+                'disetujui_signature' => $this->requiresIstekSignature ? $this->disetujui_signature : null,
+                'created_by' => null,
             ]);
 
             foreach ($this->details as $detailData) {
@@ -270,6 +330,7 @@ class PublicMaterialIssueForm extends Component
 
             // Reset specific fields
             $this->diminta_oleh = '';
+            $this->npk = '';
             $this->diterima_oleh = '';
             $this->no_hp = '';
             $this->departemen = '';
@@ -281,6 +342,9 @@ class PublicMaterialIssueForm extends Component
             $this->no_alat = '';
             $this->kode_biaya = '';
             $this->digunakan_untuk = '';
+            $this->diminta_signature = null;
+            $this->disetujui_oleh = '';
+            $this->disetujui_signature = null;
             $this->agreement = false;
             $this->details = [];
             $this->addDetail();

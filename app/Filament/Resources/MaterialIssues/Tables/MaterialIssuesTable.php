@@ -58,6 +58,12 @@ class MaterialIssuesTable
                         ->searchable()
                         ->sortable(),
 
+                    TextColumn::make('npk')
+                        ->label('NPK')
+                        ->searchable()
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: true),
+
                     TextColumn::make('materialIssueDetails.0.stage_when_issued')
                         ->label('Stage Saat Diambil')
                         ->badge()

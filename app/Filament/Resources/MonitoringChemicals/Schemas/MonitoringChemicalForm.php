@@ -40,7 +40,7 @@ class MonitoringChemicalForm
     {
         return $schema->components([
             Grid::make(12)->schema([
-                Hidden::make('created_by')->default(fn () => auth()->id()),
+                Hidden::make('created_by')->default(fn () => Auth::id()),
 
                 Group::make()->schema([
                     self::getInformasiKedatanganSection(),

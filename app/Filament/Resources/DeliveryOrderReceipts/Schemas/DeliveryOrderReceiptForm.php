@@ -552,6 +552,7 @@ class DeliveryOrderReceiptForm
                     ->directory('delivery-orders')
                     ->maxSize(5120)
                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                    ->imageEditor()
                     ->columnSpanFull()
                     ->disabled(fn(Get $get) => empty($get('search_po'))),
 
@@ -576,6 +577,8 @@ class DeliveryOrderReceiptForm
 
                 Select::make('delay_reason')
                     ->label('Alasan Penundaan POST 103')
+                    ->placeholder('Pilih Alasan')
+                    ->native(false)
                     ->options([
                         'PO Belum Confirm' => 'PO Belum Confirm',
                         'Barang Diambil User Langsung (Tanpa Monitor)' => 'Barang Diambil User Langsung (Tanpa Monitor)',
@@ -587,7 +590,9 @@ class DeliveryOrderReceiptForm
 
                 Textarea::make('delay_notes')
                     ->label('Catatan Penundaan (Lainnya)')
-                    ->rows(2)
+                    ->rows(3)
+                    ->autosize()
+                    ->columnSpanFull()
                     ->visible(fn(Get $get) => $get('delay_reason') === 'Lainnya')
                     ->required(fn(Get $get) => $get('delay_reason') === 'Lainnya')
                     ->disabled(fn() => Auth::user()->hasRole('Administrator') !== true),

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('no_alat')->nullable();
             $table->string('kode_biaya')->nullable();
             $table->string('diminta_oleh')->nullable();
+            $table->string('npk')->nullable();
             $table->string('disetujui_oleh')->nullable();
             $table->string('diketahui_oleh')->nullable();
             $table->string('diserahkan_oleh')->nullable();

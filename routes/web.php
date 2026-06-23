@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', Home::class)->name('home');
 
 Route::get('/pengambilan-barang/mir', PublicMaterialIssueForm::class)->name('frontend.mir.create');
+Route::get('/list-material', \App\Livewire\Frontend\PdNonstockList::class)->name('frontend.list-material');
 
 Route::get('/admin/material-issues/print-bulk', [\App\Http\Controllers\Admin\MaterialIssuePrintController::class, 'printBulk'])
     ->middleware(['web', 'auth'])

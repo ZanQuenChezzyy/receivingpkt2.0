@@ -1,5 +1,5 @@
 @props([
-    'user' => filament()->auth()->user(),
+    'user' => Auth::user(),
 ])
 
 <div class="flex items-center justify-center">

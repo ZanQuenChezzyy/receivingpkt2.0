@@ -14,7 +14,7 @@
                 <!-- Dropdown 1: Cek Status -->
                 <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative group h-full py-2">
                     <button @click="open = !open" class="flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#F47920] dark:hover:text-white transition-colors relative pb-1">
-                        Cek Status Material
+                        Daftar Material
                         <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -26,13 +26,13 @@
                         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
                         x-transition:leave-end="opacity-0 translate-y-3"
                         class="absolute left-0 mt-2 w-56 bg-white/95 dark:bg-[#051F34]/95 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] border border-slate-200/60 dark:border-white/10 overflow-hidden z-[100] p-2">
-                        <a href="{{ filament()->getLoginUrl() }}" wire:navigate class="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#F47920] dark:hover:text-white hover:bg-[#F47920]/10 dark:hover:bg-white/10 rounded-xl transition-all duration-200">
+                        <a href="{{ route('frontend.list-material') }}" wire:navigate class="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#F47920] dark:hover:text-white hover:bg-[#F47920]/10 dark:hover:bg-white/10 rounded-xl transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-[#F47920] transition-colors"></span>
                             Material PD
                         </a>
-                        <a href="{{ filament()->getLoginUrl() }}" wire:navigate class="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#F47920] dark:hover:text-white hover:bg-[#F47920]/10 dark:hover:bg-white/10 rounded-xl transition-all duration-200">
+                        <a href="{{ route('frontend.list-material', ['activeTab' => 'NONSTOCK']) }}" wire:navigate class="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-[#F47920] dark:hover:text-white hover:bg-[#F47920]/10 dark:hover:bg-white/10 rounded-xl transition-all duration-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-[#F47920] transition-colors"></span>
-                            Material NON STOCK
+                            Material Non-Stock
                         </a>
                     </div>
                 </div>
@@ -122,8 +122,8 @@
                         <svg :class="{'rotate-180': accOpen}" class="w-4 h-4 transition-transform text-[#F47920]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div x-show="accOpen" style="display: none;" class="px-4 pb-4 flex flex-col gap-1.5 pt-2 border-t border-white/5">
-                        <a href="{{ filament()->getLoginUrl() }}" class="block px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#F47920] dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors">Material PD</a>
-                        <a href="{{ filament()->getLoginUrl() }}" class="block px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#F47920] dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors">Material Non Stock</a>
+                        <a href="{{ route('frontend.list-material') }}" wire:navigate class="block px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#F47920] dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors">Material PD</a>
+                        <a href="{{ route('frontend.list-material', ['activeTab' => 'NONSTOCK']) }}" wire:navigate class="block px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#F47920] dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors">Material Non Stock</a>
                     </div>
                 </div>
 

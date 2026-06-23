@@ -11,6 +11,7 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class GrsRdtvForm
 {
@@ -47,7 +48,7 @@ class GrsRdtvForm
                             ->live()
                             ->required(),
                         Hidden::make('created_by')
-                            ->default(fn() => auth()->id()),
+                            ->default(fn() => Auth::id()),
                     ])->columns(2),
 
                 Section::make('Unggah Dokumen')

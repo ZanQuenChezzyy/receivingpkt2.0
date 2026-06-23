@@ -50,6 +50,9 @@
 
     <x-frontend.footer />
 
+    <!-- Chatbot Widget -->
+    <livewire:chatbot-widget />
+
     <!-- 2. Jembatan JavaScript Filament -->
     @filamentScripts
 </body>
