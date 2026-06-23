@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Transmittals\Schemas;
 
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class TransmittalForm
@@ -10,15 +13,15 @@ class TransmittalForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Informasi Transmittal')
+                Section::make('Informasi Transmittal')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('transmittal_no')
+                        TextInput::make('transmittal_no')
                             ->label('Nomor Transmittal')
                             ->disabled()
                             ->dehydrated(false) // Don't save it again if disabled, though not strictly necessary
                             ->columnSpanFull(),
 
-                        \Filament\Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label('Tipe Transmittal')
                             ->options([
                                 'Kirim' => 'Kirim',
@@ -27,7 +30,7 @@ class TransmittalForm
                             ->required()
                             ->native(false),
 
-                        \Filament\Forms\Components\Select::make('destination')
+                        Select::make('destination')
                             ->label('Tujuan')
                             ->options([
                                 'ISTEK' => 'ISTEK',

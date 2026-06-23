@@ -25,22 +25,24 @@ class ChezzyResource extends Command
                 'default'
             ));
 
-            if (!isset($options[$selectedOption])) {
+            if (! isset($options[$selectedOption])) {
                 $this->info("\033[31m Opsi tidak tersedia, silakan masukkan ulang.\033[0m");
             }
 
-        } while (!isset($options[$selectedOption]));
+        } while (! isset($options[$selectedOption]));
 
         $modelsPath = app_path('Models');
 
-        if (!File::isDirectory($modelsPath)) {
+        if (! File::isDirectory($modelsPath)) {
             $this->error(" Folder 'app/Models' tidak ditemukan.");
+
             return;
         }
 
         $modelFiles = File::files($modelsPath);
         if (empty($modelFiles)) {
             $this->warn(" Tidak ada file model di folder 'app/Models'.");
+
             return;
         }
 
@@ -59,8 +61,8 @@ class ChezzyResource extends Command
             }
         }
 
-        if (!empty($skippedModels)) {
-            $this->info("\033[33m[INFO] Beberapa model diabaikan karena resource sudah ada:\033[0m " . implode(', ', $skippedModels));
+        if (! empty($skippedModels)) {
+            $this->info("\033[33m[INFO] Beberapa model diabaikan karena resource sudah ada:\033[0m ".implode(', ', $skippedModels));
             $this->newLine();
         }
 
@@ -70,7 +72,8 @@ class ChezzyResource extends Command
         $modelsToProcess = array_values(array_diff($models, $alwaysExcludedModels));
 
         if (empty($modelsToProcess)) {
-            $this->warn(" Saat ini tidak ada model baru yang tersedia untuk dibuatkan resource.");
+            $this->warn(' Saat ini tidak ada model baru yang tersedia untuk dibuatkan resource.');
+
             return;
         }
 
@@ -85,11 +88,11 @@ class ChezzyResource extends Command
         $simpleModels = [];
         // Tanya apakah model yang dikecualikan ingin dibuatkan resource dengan tipe yang BEDA dari pilihan awal
         $altType = $selectedOption === 'default' ? 'simple' : 'default';
-        if (!empty($excludedModels) && $this->confirm("\033[36mApakah model yang dikecualikan ingin dibuat resource\033[0m [\033[33m$altType\033[0m] ?", false)) {
+        if (! empty($excludedModels) && $this->confirm("\033[36mApakah model yang dikecualikan ingin dibuat resource\033[0m [\033[33m$altType\033[0m] ?", false)) {
             $simpleModels = $excludedModels;
         }
 
-        if (!empty($modelsToProcess)) {
+        if (! empty($modelsToProcess)) {
             $this->info("\033[37m Model yang akan dibuat resource\033[0m [\033[33m$selectedOption\033[0m] :");
             foreach ($modelsToProcess as $index => $model) {
                 $this->line(" [\033[33m$index\033[0m] \033[33m$model\033[0m");
@@ -98,15 +101,16 @@ class ChezzyResource extends Command
 
         $this->newLine();
 
-        if (!empty($simpleModels)) {
+        if (! empty($simpleModels)) {
             $this->info("\033[37m Model yang akan dibuat resource\033[0m [\033[33m$altType\033[0m] :");
             foreach ($simpleModels as $index => $model) {
                 $this->line(" [\033[33m$index\033[0m] \033[33m$model\033[0m");
             }
         }
 
-        if (!$this->confirm("\033[36mLanjutkan proses pembuatan resource\033[0m ?", true)) {
-            $this->error("Proses dibatalkan oleh pengguna.");
+        if (! $this->confirm("\033[36mLanjutkan proses pembuatan resource\033[0m ?", true)) {
+            $this->error('Proses dibatalkan oleh pengguna.');
+
             return;
         }
 
@@ -114,7 +118,8 @@ class ChezzyResource extends Command
 
         // Cek jika total 0 agar tidak terjadi Division by Zero di progress bar
         if ($totalModels === 0) {
-            $this->info("Tidak ada model yang diproses.");
+            $this->info('Tidak ada model yang diproses.');
+
             return;
         }
 
@@ -165,7 +170,7 @@ class ChezzyResource extends Command
                 }
             }
 
-            if (!$this->confirm("\033[36mApakah ada lagi yang ingin dikecualikan\033[0m ?", false)) {
+            if (! $this->confirm("\033[36mApakah ada lagi yang ingin dikecualikan\033[0m ?", false)) {
                 break;
             }
         }
@@ -192,19 +197,19 @@ class ChezzyResource extends Command
         $progress = ($current / $total) * 100;
         $filledBars = (int) round(($progress / 100) * $progressWidth);
         $emptyBars = $progressWidth - $filledBars;
-        $progressBar = "[" . str_repeat("=", $filledBars) . ">" . str_repeat("-", $emptyBars) . "]";
+        $progressBar = '['.str_repeat('=', $filledBars).'>'.str_repeat('-', $emptyBars).']';
 
         if ($current === 1) {
             $this->output->write("\033[?25l");
         }
 
         if ($current === $total) {
-            $progressText = " $current/$total $progressBar " . intval($progress) . "% \033[36mBerhasil\033[0m";
+            $progressText = " $current/$total $progressBar ".intval($progress)."% \033[36mBerhasil\033[0m";
         } else {
-            $progressText = " $current/$total $progressBar " . intval($progress) . "% \033[33mMembuat resource $model...\033[0m";
+            $progressText = " $current/$total $progressBar ".intval($progress)."% \033[33mMembuat resource $model...\033[0m";
         }
 
-        $this->output->write("\033[2K\r" . str_pad($progressText, 100));
+        $this->output->write("\033[2K\r".str_pad($progressText, 100));
 
         if ($current === $total) {
             $this->output->write("\033[?25h");

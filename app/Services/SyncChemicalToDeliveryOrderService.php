@@ -2,15 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\{
-    MonitoringChemical,
-    DeliveryOrderReceipt,
-    DeliveryOrderReceiptDetail,
-    PurchaseOrderIssued
-};
+use App\Models\DeliveryOrderReceipt;
+use App\Models\DeliveryOrderReceiptDetail;
+use App\Models\MonitoringChemical;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 
 class SyncChemicalToDeliveryOrderService
 {
@@ -24,7 +20,7 @@ class SyncChemicalToDeliveryOrderService
             $mainLocationId = $firstDetail ? $firstDetail->location_id : null;
 
             // Find existing DO or create new
-            $dor = DeliveryOrderReceipt::where('monitoring_chemical_id', $chemical->id)->first() ?? new DeliveryOrderReceipt();
+            $dor = DeliveryOrderReceipt::where('monitoring_chemical_id', $chemical->id)->first() ?? new DeliveryOrderReceipt;
 
             $payload = [
                 'monitoring_chemical_id' => $chemical->id,
@@ -43,11 +39,13 @@ class SyncChemicalToDeliveryOrderService
 
             foreach ($chemical->monitoringChemicalDetails as $detailRow) {
                 $po = $detailRow->purchaseOrderIssued;
-                if (!$po) continue;
+                if (! $po) {
+                    continue;
+                }
 
                 $poItemNo = (int) $po->getAttribute('item_no');
                 $validItemNos[] = $poItemNo;
-                
+
                 $detail = DeliveryOrderReceiptDetail::query()->firstOrNew([
                     'delivery_order_receipt_id' => $dor->getAttribute('id'),
                     'item_no' => $poItemNo,
@@ -70,7 +68,7 @@ class SyncChemicalToDeliveryOrderService
             }
 
             // Remove any other details that might have been there
-            if (!empty($validItemNos)) {
+            if (! empty($validItemNos)) {
                 DeliveryOrderReceiptDetail::where('delivery_order_receipt_id', $dor->getAttribute('id'))
                     ->whereNotIn('item_no', $validItemNos)
                     ->delete();

@@ -9,7 +9,6 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Filament\Support\Icons\Heroicon;
 
 class TransmittalInfolist
 {
@@ -49,7 +48,7 @@ class TransmittalInfolist
                                     ->label('Tanggal Pembuatan')
                                     ->date('l, d F Y')
                                     ->icon('heroicon-m-calendar-days'),
-                                    
+
                                 TextEntry::make('total_documents')
                                     ->getStateUsing(fn ($record) => $record->transmittalItems()->count())
                                     ->label('Total Dokumen')
@@ -75,7 +74,7 @@ class TransmittalInfolist
                                             ->label('Kode Dokumen')
                                             ->weight(FontWeight::SemiBold)
                                             ->color('primary'),
-                                            
+
                                         TextEntry::make('deliveryOrderReceipt.post_103')
                                             ->label('Status MIGO 103')
                                             ->badge()

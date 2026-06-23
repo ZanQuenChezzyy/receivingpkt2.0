@@ -138,6 +138,55 @@ class DeliveryOrderReceiptsTable
                         ->badge()
                         ->color('info'),
 
+                    TextColumn::make('status_pengambilan')
+                        ->label('Status Pengambilan')
+                        ->icon('heroicon-m-arrow-right-on-rectangle')
+                        ->getStateUsing(function ($record) {
+                            $details = $record->deliveryOrderReceiptDetails;
+                            if ($details->isEmpty()) {
+                                return 'Belum Diambil';
+                            }
+
+                            $totalReceived = $details->sum('quantity');
+                            $totalIssued = $details->sum(function ($d) {
+                                return $d->materialIssueDetails->sum('diserahkan');
+                            });
+
+                            if ($totalIssued == 0) {
+                                return 'Belum Diambil';
+                            }
+                            if ($totalIssued >= $totalReceived) {
+                                return 'Full Diambil';
+                            }
+
+                            return 'Sebagian Diambil';
+                        })
+                        ->description(function ($record) {
+                            $details = $record->deliveryOrderReceiptDetails;
+                            if ($details->isEmpty()) {
+                                return '';
+                            }
+
+                            $totalReceived = $details->sum('quantity');
+                            $totalIssued = $details->sum(function ($d) {
+                                return $d->materialIssueDetails->sum('diserahkan');
+                            });
+
+                            if ($totalReceived == 0) {
+                                return '';
+                            }
+                            $percentage = round(($totalIssued / $totalReceived) * 100);
+
+                            return "{$percentage}% ({$totalIssued} dari {$totalReceived})";
+                        })
+                        ->badge()
+                        ->color(fn ($state) => match ($state) {
+                            'Belum Diambil' => 'danger',
+                            'Sebagian Diambil' => 'warning',
+                            'Full Diambil' => 'success',
+                            default => 'gray',
+                        }),
+
                     // Dipindahkan ke sini dari Log Sistem
                     TextColumn::make('receivedBy.name')
                         ->label('Penerima')

@@ -17,12 +17,38 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .nav-desktop { display: none !important; }
+        .nav-mobile-btn { display: flex !important; }
+        
+        @media (min-width: 1024px) {
+            .nav-desktop { display: flex !important; }
+            .nav-mobile-btn { display: none !important; }
+        }
     </style>
+    <script>
+        function applyTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        applyTheme();
+        document.addEventListener('livewire:navigated', applyTheme);
+    </script>
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased overflow-x-hidden">
+<body x-data="{ isDark: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) }" 
+      x-init="$watch('isDark', val => { localStorage.setItem('theme', val ? 'dark' : 'light'); if(val) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); })"
+      class="bg-slate-50 dark:bg-[#031525] text-slate-800 dark:text-slate-200 antialiased overflow-x-hidden transition-colors duration-500 flex flex-col min-h-screen">
 
-    {{ $slot }}
+    <x-frontend.navbar />
+
+    <main class="flex-grow">
+        {{ $slot }}
+    </main>
+
+    <x-frontend.footer />
 
     <!-- 2. Jembatan JavaScript Filament -->
     @filamentScripts

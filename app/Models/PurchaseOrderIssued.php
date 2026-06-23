@@ -66,4 +66,9 @@ class PurchaseOrderIssued extends Model
     {
         return $this->hasMany(ChemicalQcTuv::class);
     }
+
+    public function deliveryOrderReceiptDetails(): HasMany
+    {
+        return $this->hasMany(DeliveryOrderReceiptDetail::class);
+    }
 }

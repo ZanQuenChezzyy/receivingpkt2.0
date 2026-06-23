@@ -10,12 +10,13 @@ use App\Filament\Resources\MonitoringNpks\Schemas\MonitoringNpkForm;
 use App\Filament\Resources\MonitoringNpks\Schemas\MonitoringNpkInfolist;
 use App\Filament\Resources\MonitoringNpks\Tables\MonitoringNpksTable;
 use App\Models\MonitoringNpk;
+use App\Models\MonitoringNpkDetail;
+use App\Models\PurchaseOrderIssued;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-
 use UnitEnum;
 
 class MonitoringNpkResource extends Resource
@@ -47,7 +48,7 @@ class MonitoringNpkResource extends Resource
 
     public static function hitungSisaDbByItem(int $poTerbitId, ?int $currentMonitoringId): array
     {
-        $poRow = \App\Models\PurchaseOrderIssued::query()
+        $poRow = PurchaseOrderIssued::query()
             ->select(['id', 'purchase_order_no', 'item_no', 'qty_po', 'uoi'])
             ->find($poTerbitId);
 
@@ -60,17 +61,17 @@ class MonitoringNpkResource extends Resource
             return ['po' => 0.0, 'used_db' => 0.0, 'uoi' => $uoi, 'po_no' => $poNo, 'item_no' => $itemNo];
         }
 
-        $matchingPoTerbitIds = \App\Models\PurchaseOrderIssued::query()
+        $matchingPoTerbitIds = PurchaseOrderIssued::query()
             ->where('purchase_order_no', $poNo)
             ->where('item_no', $itemNo)
             ->pluck('id');
 
-        $usedDb = (float) \App\Models\MonitoringNpkDetail::query()
+        $usedDb = (float) MonitoringNpkDetail::query()
             ->whereHas('monitoringNpk', function ($q) use ($matchingPoTerbitIds) {
                 $q->whereIn('purchase_order_terbit_id', $matchingPoTerbitIds);
             })
             ->where('item_no', $itemNo)
-            ->when($currentMonitoringId, fn($q) => $q->where('monitoring_npk_id', '!=', $currentMonitoringId))
+            ->when($currentMonitoringId, fn ($q) => $q->where('monitoring_npk_id', '!=', $currentMonitoringId))
             ->sum('quantity');
 
         return [

@@ -55,13 +55,13 @@ class RoleForm
                     ->offIcon(Heroicon::ShieldExclamation)
 
                     ->afterStateHydrated(function ($set, $record) use ($permissionFieldMap) {
-                        if (!$record) {
+                        if (! $record) {
                             return;
                         }
 
                         $selected = $record->permissions->pluck('id')->sort()->values()->all();
                         $all = $permissionFieldMap->flatten()->sort()->values()->all(); // Hapus collect() karena sudah berbentuk Collection
-            
+
                         $set('select_all', $selected === $all);
                     })
 
@@ -84,7 +84,7 @@ class RoleForm
     {
         $tabs = $groupedPermissions
             ->map(function ($permissions, string $resource) {
-                $fieldName = 'permissions_' . Str::snake($resource);
+                $fieldName = 'permissions_'.Str::snake($resource);
 
                 return Tab::make(Str::headline($resource))
                     ->icon(Heroicon::Key)
@@ -98,7 +98,7 @@ class RoleForm
                                     ->relationship(
                                         'permissions',
                                         'name',
-                                        modifyQueryUsing: fn($query) => $query->whereIn('id', $permissions->pluck('id'))
+                                        modifyQueryUsing: fn ($query) => $query->whereIn('id', $permissions->pluck('id'))
                                     )
                                     ->getOptionLabelFromRecordUsing(function ($record) {
                                         $name = strtolower($record->name);
@@ -111,8 +111,9 @@ class RoleForm
                                             'restore' => 'restore',
                                             'force delete' => 'force_delete',
                                         ];
-                                        $key = collect($map)->first(fn($value, $startsWith) => str_starts_with($name, $startsWith));
-                                        return $key ? __('role.' . $key) : __($record->name);
+                                        $key = collect($map)->first(fn ($value, $startsWith) => str_starts_with($name, $startsWith));
+
+                                        return $key ? __('role.'.$key) : __($record->name);
                                     })
                                     ->bulkToggleable()
                                     ->searchable()
@@ -171,7 +172,7 @@ class RoleForm
     {
         return $groupedPermissions->mapWithKeys(function ($permissions, $resource) {
             return [
-                'permissions_' . Str::snake($resource) => $permissions->pluck('id')->values()->all(),
+                'permissions_'.Str::snake($resource) => $permissions->pluck('id')->values()->all(),
             ];
         });
     }
@@ -182,7 +183,7 @@ class RoleForm
     public static function mergePermissions(array $data): array
     {
         $allPermissions = collect($data)
-            ->filter(fn($value, $key) => str_starts_with($key, 'permissions_'))
+            ->filter(fn ($value, $key) => str_starts_with($key, 'permissions_'))
             ->flatten()
             ->unique()
             ->values()

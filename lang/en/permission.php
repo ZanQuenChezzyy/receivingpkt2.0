@@ -26,8 +26,7 @@ return [
     // Form Sections
     'permission_information' => 'Permission Information',
     'permission_information_desc' => 'Used to manage system access rights.',
-    'helper_text_permission' =>
-        'Enter the permission name in the format like <strong>View Any User</strong>, <strong>Create User</strong>, or <strong>Delete User</strong>.
+    'helper_text_permission' => 'Enter the permission name in the format like <strong>View Any User</strong>, <strong>Create User</strong>, or <strong>Delete User</strong>.
         <br><strong>Note:</strong> Replace <strong>"User"</strong> with the relevant entity, e.g., <strong>View Any Order</strong> or <strong>Create Product</strong>.
         <br><strong>Required:</strong> Each entity should have <strong>7 permissions</strong> in the exact format below:<br>
         <ul>

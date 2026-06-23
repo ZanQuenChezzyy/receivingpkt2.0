@@ -19,8 +19,11 @@ class DeliveryOrderReceiptDetailResource extends Resource
     protected static ?string $model = DeliveryOrderReceiptDetail::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
+
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Cube;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Penerimaan Receiving';
+
     protected static ?int $navigationSort = 2;
 
     public static function getNavigationLabel(): string

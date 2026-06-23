@@ -5,8 +5,8 @@ namespace App\Filament\Pages;
 use Caresome\FilamentAuthDesigner\Pages\Auth\Login as BaseLogin;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 
 class Login extends BaseLogin
 {

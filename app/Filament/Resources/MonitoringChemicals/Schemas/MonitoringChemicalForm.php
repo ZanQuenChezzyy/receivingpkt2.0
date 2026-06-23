@@ -40,7 +40,7 @@ class MonitoringChemicalForm
     {
         return $schema->components([
             Grid::make(12)->schema([
-                Hidden::make('created_by')->default(fn() => auth()->id()),
+                Hidden::make('created_by')->default(fn () => auth()->id()),
 
                 Group::make()->schema([
                     self::getInformasiKedatanganSection(),
@@ -107,8 +107,8 @@ class MonitoringChemicalForm
                 Select::make('search_po')
                     ->label('Pilih PO')
                     ->placeholder('Cari Nomor PO...')
-                    ->disabled(fn(Get $get) => blank($get('material_category')))
-                    ->helperText(fn(Get $get) => blank($get('material_category')) ? 'Pilih kategori material terlebih dahulu.' : null)
+                    ->disabled(fn (Get $get) => blank($get('material_category')))
+                    ->helperText(fn (Get $get) => blank($get('material_category')) ? 'Pilih kategori material terlebih dahulu.' : null)
                     ->options(function (Get $get) {
                         $cat = $get('material_category');
                         $query = PurchaseOrderIssued::query();
@@ -135,7 +135,7 @@ class MonitoringChemicalForm
                     })
                     ->live()
                     ->afterStateUpdated(function (Set $set, Get $get, $state, $record) {
-                        if (!$state) {
+                        if (! $state) {
                             $set('monitoringChemicalDetails', []);
 
                             return;
@@ -149,7 +149,7 @@ class MonitoringChemicalForm
                         foreach ($poItems as $item) {
                             $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $item->id)
                                 ->when($recordId, function ($q) use ($recordId) {
-                                    $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                    $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                 })
                                 ->sum('quantity');
 
@@ -177,9 +177,9 @@ class MonitoringChemicalForm
                                     }
                                 }
 
-                                if (!empty($tahapanTerlibat)) {
+                                if (! empty($tahapanTerlibat)) {
                                     $tahapanUnik = array_unique($tahapanTerlibat);
-                                    $tahapanValue = 'TAHAP ' . implode(',', $tahapanUnik) . ' TUV';
+                                    $tahapanValue = 'TAHAP '.implode(',', $tahapanUnik).' TUV';
                                 } else {
                                     $tahapanValue = 'TAHAPAN TUV PENUH / MELEBIHI TARGET';
                                 }
@@ -240,15 +240,15 @@ class MonitoringChemicalForm
                 EmptyState::make('Belum Ada PO yang Dipilih')
                     ->description('Silakan pilih Kategori dan cari Nomor Purchase Order di form Informasi Dokumen untuk memunculkan item kedatangan.')
                     ->icon(Heroicon::OutlinedDocumentMagnifyingGlass)
-                    ->visible(fn(Get $get, $record) => blank($get('search_po')) && $record === null)
+                    ->visible(fn (Get $get, $record) => blank($get('search_po')) && $record === null)
                     ->columnSpanFull(),
 
                 Repeater::make('monitoringChemicalDetails')
                     ->label('')
                     ->relationship('monitoringChemicalDetails')
                     ->collapsible()
-                    ->visible(fn(Get $get, $record) => filled($get('search_po')) || $record !== null)
-                    ->itemLabel(fn(array $state): ?string => $state['tahapan'] ?? 'Baris Item Baru')
+                    ->visible(fn (Get $get, $record) => filled($get('search_po')) || $record !== null)
+                    ->itemLabel(fn (array $state): ?string => $state['tahapan'] ?? 'Baris Item Baru')
                     ->schema([
                         Grid::make(2)->schema([
                             // Kolom 1 (Visual Kolom 2): Detail Item Kedatangan
@@ -257,14 +257,14 @@ class MonitoringChemicalForm
                                 ->placeholder('Pilih Item PO...')
                                 ->helperText('Pilih item dari daftar PO yang tersedia.')
                                 ->prefixIcon('heroicon-o-shopping-bag')
-                                ->options(fn(Get $get) => PurchaseOrderIssued::where('purchase_order_no', $get('../../search_po'))->get()->mapWithKeys(fn($po) => [$po->id => "Item {$po->item_no} - {$po->description}"]))
+                                ->options(fn (Get $get) => PurchaseOrderIssued::where('purchase_order_no', $get('../../search_po'))->get()->mapWithKeys(fn ($po) => [$po->id => "Item {$po->item_no} - {$po->description}"]))
                                 ->native(false)
                                 ->searchable()
                                 ->required()
                                 ->live()
                                 ->columnSpanFull()
                                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    if (!$state) {
+                                    if (! $state) {
                                         $set('quantity', null);
                                         $set('tahapan', null);
 
@@ -275,13 +275,13 @@ class MonitoringChemicalForm
                                     $cat = $get('../../material_category');
                                     $poItem = PurchaseOrderIssued::find($state);
 
-                                    if (!$poItem) {
+                                    if (! $poItem) {
                                         return;
                                     }
 
                                     $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $state)
                                         ->when($recordId, function ($q) use ($recordId) {
-                                            $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                            $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                         })
                                         ->sum('quantity');
 
@@ -309,9 +309,9 @@ class MonitoringChemicalForm
                                             }
                                         }
 
-                                        if (!empty($tahapanTerlibat)) {
+                                        if (! empty($tahapanTerlibat)) {
                                             $tahapanUnik = array_unique($tahapanTerlibat);
-                                            $tahapanValue = 'TAHAP ' . implode(',', $tahapanUnik) . ' TUV';
+                                            $tahapanValue = 'TAHAP '.implode(',', $tahapanUnik).' TUV';
                                         } else {
                                             $tahapanValue = 'TAHAPAN TUV PENUH / MELEBIHI TARGET';
                                         }
@@ -331,7 +331,7 @@ class MonitoringChemicalForm
                                         ->required()
                                         ->mask(RawJs::make('$money($input)'))
                                         ->stripCharacters(',')
-                                        ->dehydrateStateUsing(fn($state) => (float) str_replace(',', '', (string) $state))
+                                        ->dehydrateStateUsing(fn ($state) => (float) str_replace(',', '', (string) $state))
                                         ->suffixIcon(Heroicon::OutlinedScale)
                                         ->live(onBlur: true)
                                         ->columnSpanFull()
@@ -339,7 +339,7 @@ class MonitoringChemicalForm
                                             $poId = $get('purchase_order_issued_id');
                                             $inputQty = (float) str_replace(',', '', (string) $state);
 
-                                            if (!$poId || $inputQty <= 0) {
+                                            if (! $poId || $inputQty <= 0) {
                                                 if ($get('../../material_category') === 'Karung') {
                                                     $set('tahapan', null);
                                                 }
@@ -350,7 +350,7 @@ class MonitoringChemicalForm
                                             $recordId = $get('../../id');
                                             $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)
                                                 ->when($recordId, function ($q) use ($recordId) {
-                                                    $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                                    $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                                 })
                                                 ->sum('quantity');
 
@@ -372,9 +372,9 @@ class MonitoringChemicalForm
                                                     }
                                                 }
 
-                                                if (!empty($tahapanTerlibat)) {
+                                                if (! empty($tahapanTerlibat)) {
                                                     $tahapanUnik = array_unique($tahapanTerlibat);
-                                                    $set('tahapan', 'TAHAP ' . implode(',', $tahapanUnik) . ' TUV');
+                                                    $set('tahapan', 'TAHAP '.implode(',', $tahapanUnik).' TUV');
                                                 } else {
                                                     // Jika history sudah melebihi semua akumulasi target
                                                     $set('tahapan', 'TAHAPAN TUV PENUH / MELEBIHI TARGET');
@@ -382,9 +382,9 @@ class MonitoringChemicalForm
                                             }
                                         })
                                         ->rules([
-                                            fn(Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                            fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
                                                 $poId = $get('purchase_order_issued_id');
-                                                if (!$poId) {
+                                                if (! $poId) {
                                                     return;
                                                 }
 
@@ -401,7 +401,7 @@ class MonitoringChemicalForm
                                                 $recordId = $get('../../id');
                                                 $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)
                                                     ->when($recordId, function ($q) use ($recordId) {
-                                                        $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                                        $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                                     })
                                                     ->sum('quantity');
 
@@ -445,12 +445,12 @@ class MonitoringChemicalForm
                                 ]),
 
                                 TextInput::make('tahapan')
-                                    ->label(fn(Get $get) => $get('../../material_category') === 'Karung' ? 'Tahapan (Auto)' : 'Tahapan')
+                                    ->label(fn (Get $get) => $get('../../material_category') === 'Karung' ? 'Tahapan (Auto)' : 'Tahapan')
                                     ->placeholder('Otomatis / Manual')
                                     ->helperText('Tahapan TUV berdasarkan alokasi.')
                                     ->prefixIcon('heroicon-o-flag')
                                     ->required()
-                                    ->readOnly(fn(Get $get) => $get('../../material_category') === 'Karung'),
+                                    ->readOnly(fn (Get $get) => $get('../../material_category') === 'Karung'),
                             ]),
 
                             // Kolom 2 (Visual Kolom 3): Group Data TUV dan Toggle
@@ -459,13 +459,13 @@ class MonitoringChemicalForm
                                 ->schema([
                                     TextEntry::make('tuv_list')
                                         ->hiddenLabel()
-                                        ->visible(fn(Get $get) => $get('../../material_category') === 'Karung')
+                                        ->visible(fn (Get $get) => $get('../../material_category') === 'Karung')
                                         ->state(function (Get $get) {
                                             // Pancing pembaruan via hidden field
                                             $get('tuv_refresh_trigger');
 
                                             $poId = $get('purchase_order_issued_id');
-                                            if (!$poId) {
+                                            if (! $poId) {
                                                 return new HtmlString('<span class="text-gray-500 italic text-sm">Pilih Informasi Item PO di Kolom 1.</span>');
                                             }
 
@@ -525,7 +525,7 @@ class MonitoringChemicalForm
                                             ->schema([
                                                 Select::make('tahapan_name')
                                                     ->label('Nama Tahapan')
-                                                    ->options(collect(range(1, 100))->mapWithKeys(fn($i) => ["TAHAP $i TUV" => "TAHAP $i TUV"]))
+                                                    ->options(collect(range(1, 100))->mapWithKeys(fn ($i) => ["TAHAP $i TUV" => "TAHAP $i TUV"]))
                                                     ->searchable()
                                                     ->required(),
                                                 TextInput::make('qty_qc_tuv')
@@ -537,7 +537,7 @@ class MonitoringChemicalForm
                                             ])
                                             ->action(function (array $data, Get $get, Set $set, Actions $component) {
                                                 $poId = $get('purchase_order_issued_id');
-                                                if (!$poId) {
+                                                if (! $poId) {
                                                     return;
                                                 }
 
@@ -589,7 +589,7 @@ class MonitoringChemicalForm
                                                     $recordId = $get('../../id');
                                                     $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)
                                                         ->when($recordId, function ($q) use ($recordId) {
-                                                            $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                                            $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                                         })
                                                         ->sum('quantity');
 
@@ -607,9 +607,9 @@ class MonitoringChemicalForm
                                                             $tahapanTerlibat[] = $angkaTahap;
                                                         }
                                                     }
-                                                    if (!empty($tahapanTerlibat)) {
+                                                    if (! empty($tahapanTerlibat)) {
                                                         $tahapanUnik = array_unique($tahapanTerlibat);
-                                                        $set('tahapan', 'TAHAP ' . implode(',', $tahapanUnik) . ' TUV');
+                                                        $set('tahapan', 'TAHAP '.implode(',', $tahapanUnik).' TUV');
                                                     } else {
                                                         $set('tahapan', 'TAHAPAN TUV PENUH / MELEBIHI TARGET');
                                                     }
@@ -622,7 +622,7 @@ class MonitoringChemicalForm
                                             ->size('sm')
                                             ->color('danger')
                                             ->mountUsing(function ($form, Actions $component) {
-                                                $poId = $component->evaluate(fn(Get $get) => $get('purchase_order_issued_id'));
+                                                $poId = $component->evaluate(fn (Get $get) => $get('purchase_order_issued_id'));
                                                 $form->fill(['po_id' => $poId]);
                                             })
                                             ->schema([
@@ -631,12 +631,12 @@ class MonitoringChemicalForm
                                                     ->label('Pilih Tahapan yang Ingin Dihapus')
                                                     ->options(function (Get $get) {
                                                         $poId = $get('po_id');
-                                                        if (!$poId) {
+                                                        if (! $poId) {
                                                             return [];
                                                         }
 
                                                         // Cek history quantity yang sudah diterima
-                                                        $historyQty = \App\Models\MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)->sum('quantity');
+                                                        $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)->sum('quantity');
 
                                                         $tuvs = ChemicalQcTuv::where('purchase_order_issued_id', $poId)->orderBy('id')->get();
                                                         $options = [];
@@ -646,10 +646,10 @@ class MonitoringChemicalForm
                                                             $tahapStart = $akumulasi;
                                                             $akumulasi += $t->qty_qc_tuv;
 
-                                                            // TUV hanya bisa dihapus jika akumulasi penerimaan (historyQty) 
+                                                            // TUV hanya bisa dihapus jika akumulasi penerimaan (historyQty)
                                                             // belum menyentuh batas awal tahap TUV ini.
                                                             if ($historyQty <= $tahapStart) {
-                                                                $options[$t->id] = $t->tahapan_name . ' (' . rtrim(rtrim(number_format($t->qty_qc_tuv, 2, ',', '.'), '0'), ',') . ')';
+                                                                $options[$t->id] = $t->tahapan_name.' ('.rtrim(rtrim(number_format($t->qty_qc_tuv, 2, ',', '.'), '0'), ',').')';
                                                             }
                                                         }
 
@@ -674,9 +674,9 @@ class MonitoringChemicalForm
                                                     $qtyCurrent = (float) str_replace(',', '', (string) $get('quantity'));
                                                     if ($qtyCurrent > 0 && $get('../../material_category') === 'Karung' && $poId) {
                                                         $recordId = $get('../../id');
-                                                        $historyQty = \App\Models\MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)
+                                                        $historyQty = MonitoringChemicalDetail::where('purchase_order_issued_id', $poId)
                                                             ->when($recordId, function ($q) use ($recordId) {
-                                                                $q->whereHas('monitoringChemical', fn($query) => $query->where('id', '!=', $recordId));
+                                                                $q->whereHas('monitoringChemical', fn ($query) => $query->where('id', '!=', $recordId));
                                                             })
                                                             ->sum('quantity');
 
@@ -694,9 +694,9 @@ class MonitoringChemicalForm
                                                                 $tahapanTerlibat[] = $angkaTahap;
                                                             }
                                                         }
-                                                        if (!empty($tahapanTerlibat)) {
+                                                        if (! empty($tahapanTerlibat)) {
                                                             $tahapanUnik = array_unique($tahapanTerlibat);
-                                                            $set('tahapan', 'TAHAP ' . implode(',', $tahapanUnik) . ' TUV');
+                                                            $set('tahapan', 'TAHAP '.implode(',', $tahapanUnik).' TUV');
                                                         } else {
                                                             $set('tahapan', $allTuvs->isEmpty() ? null : 'TAHAPAN TUV PENUH / MELEBIHI TARGET');
                                                         }
@@ -704,7 +704,7 @@ class MonitoringChemicalForm
                                                 }
                                             }),
 
-                                    ])->visible(fn(Get $get) => $get('../../material_category') === 'Karung'),
+                                    ])->visible(fn (Get $get) => $get('../../material_category') === 'Karung'),
 
                                     Hidden::make('tuv_refresh_trigger')->live(),
 
@@ -778,7 +778,7 @@ class MonitoringChemicalForm
                                         ->suffix('Hari')
                                         ->prefixIcon('heroicon-o-clock')
                                         ->extraInputAttributes(['class' => 'font-bold text-primary-600']),
-                                ])->columnSpanFull()->visible(fn(Get $get) => $get('has_update_progress')),
+                                ])->columnSpanFull()->visible(fn (Get $get) => $get('has_update_progress')),
                         ]),
 
                         Textarea::make('notes')
@@ -789,7 +789,7 @@ class MonitoringChemicalForm
                             ->columnSpanFull(),
                     ])
                     ->mutateRelationshipDataBeforeCreateUsing(function (array $data) {
-                        if (!empty($data['tanggal_pengajuan_simala']) && !empty($data['tanggal_terbit_coa'])) {
+                        if (! empty($data['tanggal_pengajuan_simala']) && ! empty($data['tanggal_terbit_coa'])) {
                             $diff = Carbon::parse($data['tanggal_pengajuan_simala'])->diffInDays(Carbon::parse($data['tanggal_terbit_coa']));
                             $data['leadtime_coa'] = $diff;
                         }
@@ -797,7 +797,7 @@ class MonitoringChemicalForm
                         return $data;
                     })
                     ->mutateRelationshipDataBeforeSaveUsing(function (array $data) {
-                        if (!empty($data['tanggal_pengajuan_simala']) && !empty($data['tanggal_terbit_coa'])) {
+                        if (! empty($data['tanggal_pengajuan_simala']) && ! empty($data['tanggal_terbit_coa'])) {
                             $diff = Carbon::parse($data['tanggal_pengajuan_simala'])->diffInDays(Carbon::parse($data['tanggal_terbit_coa']));
                             $data['leadtime_coa'] = $diff;
                         }
@@ -820,12 +820,12 @@ class MonitoringChemicalForm
             ->schema([
                 TextEntry::make('summary_table')
                     ->hiddenLabel()
-                    ->extraAttributes(fn(Get $get) => [
-                        'wire:key' => 'summary-po-' . mt_rand(),
+                    ->extraAttributes(fn (Get $get) => [
+                        'wire:key' => 'summary-po-'.mt_rand(),
                     ])
                     ->getStateUsing(function (Get $get, $record) {
                         $poNo = $get('search_po');
-                        if (!$poNo) {
+                        if (! $poNo) {
                             return new HtmlString('<p class="text-sm text-gray-500 italic">Data PO tidak ditemukan.</p>');
                         }
 
@@ -846,7 +846,7 @@ class MonitoringChemicalForm
                             $itemId = $detail['purchase_order_issued_id'] ?? null;
                             if ($itemId) {
                                 $qty = (float) str_replace(',', '', (string) ($detail['quantity'] ?? '0'));
-                                if (!isset($qtySaatIniPerItem[$itemId])) {
+                                if (! isset($qtySaatIniPerItem[$itemId])) {
                                     $qtySaatIniPerItem[$itemId] = 0;
                                 }
                                 $qtySaatIniPerItem[$itemId] += $qty;
@@ -870,7 +870,7 @@ class MonitoringChemicalForm
 
                         foreach ($allItems as $item) {
                             $totalDiterimaRiwayat = MonitoringChemicalDetail::whereHas('monitoringChemical', function ($q) use ($recordId) {
-                                $q->when($recordId, fn($query) => $query->where('id', '!=', $recordId));
+                                $q->when($recordId, fn ($query) => $query->where('id', '!=', $recordId));
                             })->where('purchase_order_issued_id', $item->id)->sum('quantity');
 
                             $qtySaatIni = $qtySaatIniPerItem[$item->id] ?? 0;

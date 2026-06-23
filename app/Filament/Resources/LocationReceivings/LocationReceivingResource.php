@@ -5,7 +5,6 @@ namespace App\Filament\Resources\LocationReceivings;
 use App\Filament\Resources\LocationReceivings\Pages\ManageLocationReceivings;
 use App\Models\LocationReceiving;
 use BackedEnum;
-use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -18,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class LocationReceivingResource extends Resource
 {

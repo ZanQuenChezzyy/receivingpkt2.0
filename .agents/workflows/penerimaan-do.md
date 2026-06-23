@@ -1,87 +1,71 @@
 ---
-description: Workflow Operasional Receiving PKT 2.0: Meliputi Modul 1 (Penerimaan Fisik, Cetak QR, MIGO 103, Crosscheck AVP & Exception Handling) dan Modul 2 (Transmittal QC Kirim & Kembali via Bulk Barcode Scan).
+description: Workflow Operasional Receiving PKT 2.0: Meliputi Modul 1 (Penerimaan DO & Pengecekan Fisik), Modul 2 (Transmittal QC Kirim & Kembali), Modul 3 (GRS & RDTV Digitalisasi), dan Modul 4 (Material Issued / Pengambilan Barang).
 ---
 
-# PANDUAN AGEN: WORKFLOW RECEIVING & TRANSMITTAL QC (PKT 2.0)
+# PANDUAN AGEN: WORKFLOW RECEIVING, QC, GRS & PENGAMBILAN BARANG (PKT 2.0)
 
-Anda adalah Agen AI Pengawas Lapangan untuk aplikasi Receiving PKT. Tugas Anda adalah memandu dan memastikan alur operasional dari pintu kedatangan barang hingga serah terima dokumen QC berjalan tanpa ada data yang menggantung (terbengkalai).
+Anda adalah Agen AI Pengawas Lapangan untuk aplikasi Receiving PKT. Tugas Anda adalah memandu dan memastikan alur operasional dari pintu kedatangan barang hingga pengambilan barang (Material Issued) berjalan terstruktur, terhubung, dan tidak ada data yang menggantung.
 
 ---
 
-## MODUL 1: PENERIMAAN DO & TRACKING SAP 103
+## MODUL 1: PENERIMAAN DO & TRACKING FISIK / SAP
 
-### 1. Kedatangan & Pengecekan Fisik
+### 1. Inisiasi Penerimaan DO
+- Pihak Expediting menyerahkan barang.
+- Operator/Admin menginput data `Delivery Order Receipt` dengan mencari Nomor PO langsung dari data `PurchaseOrderIssued`.
+- Sistem secara otomatis menarik detail material, menghitung sisa QTY PO berdasarkan riwayat penerimaan sebelumnya.
+- Terdapat proses konfirmasi penerimaan fisik melalui `is_physically_received` dan pencatatan `physical_received_date`, serta `receipt_mode` (Standard, Termin, Surat DOF).
+- Khusus mode Termin, sistem akan menghitung persentase otomatis. Khusus mode DOF, Nomor DOF dan Tanggal DOF diwajibkan.
 
-- Pihak Expediting menyerahkan barang ke Gudang Receiving PKT.
-- Instruksikan Operator untuk menghitung fisik barang dan mencocokkannya dengan kertas DO.
+### 2. Pengecekan Kualitas & Kuantitas
+- Detail barang (`DeliveryOrderReceiptDetail`) mencatat material yang datang, kuantitas aktual, serta lokasi penyimpanannya secara spesifik per item.
+- Terdapat fitur Toleransi Qty untuk penerimaan yang melebihi batas PO.
 
-### 2. Input Sistem & Cetak QR (Operator)
-
-- Operator membuka menu "Penerimaan DO" di aplikasi.
-- Operator menginput data penerimaan (fokus pada Sparepart/ZSP/ZSM/ZRM).
-- Setelah data tersimpan, wajibkan Operator mencetak **QR Material** (ditempel di barang) dan **QR Dokumen** (ditempel di map berkas).
-- Map berkas diserahkan ke meja Admin Receiving.
-
-### 3. Eksekusi MIGO 103 & Log Kendala (Admin)
-
-Admin wajib melakukan transaksi tcode `/MIGO` (103) di SAP, lalu mengklik tombol **POST 103** di tabel aplikasi untuk mencatat tanggal penyelesaian.
-
-- **ATURAN WAJIB (EXCEPTION HANDLING):** Jika Admin menunda klik POST 103 lebih dari 1x24 jam sejak dokumen dibuat, sistem harus menagih alasan penundaan.
-- Sediakan kolom "Keterangan Tertunda" dengan pilihan wajib:
-    1. PO Belum Confirm
-    2. Barang Diambil User Langsung (Tanpa Monitor)
-    3. Fisik Kelebihan Kirim (Over-delivery)
-    4. Lainnya (Input Teks)
-- _Tujuan:_ Tidak boleh ada dokumen menumpuk di meja admin tanpa status yang jelas di sistem.
-
-### 4. Crosscheck Berjenjang (Staff -> AVP)
-
-- Admin menyerahkan dokumen ke Staff Receiving untuk validasi silang (DO vs PO vs Fisik).
-- Jika **TIDAK SESUAI**: Admin harus melakukan Cancellation/Tarik Kembali 103 di SAP, merevisi data di sistem, dan mengulang pengajuan.
-- Jika **SESUAI**: Dokumen naik ke AVP Receiving.
-- AVP melakukan validasi akhir dan mengembalikan dokumen sah ke Admin.
-- Hal ini tidak dilakukan menggunakan Aplikasi Receeiving PKT (Tetap Manual)
+### 3. Eksekusi MIGO 103 (Post 103)
+- Admin melaksanakan MIGO 103 di sistem SAP.
+- Setelah selesai, Admin memperbarui status di aplikasi dengan mencatat `post_103` (Tanggal Post) dan `qr_103_code`.
+- Jika ada penundaan, Admin mencatat Alasan Penundaan.
 
 ---
 
 ## MODUL 2: TRANSMITTAL QC (KIRIM & KEMBALI)
 
-Modul ini adalah bukti sah hitam di atas putih penyerahan dokumen antara Receiving dan ISTEK (Inspeksi Teknik). Gunakan mode pemindaian cepat (Bulk Scan).
+Modul ini adalah bukti penyerahan dokumen sah antara pihak Receiving dan ISTEK (Inspeksi Teknik).
 
-### 1. Transmittal QC Kirim (Receiving ke ISTEK)
+### 1. Transmittal QC Kirim
+- Admin membuat Transmittal (Tipe: Kirim) yang ditujukan kepada pihak ISTEK.
+- DO Receipt yang dimasukkan ke dalam Transmittal Kirim akan terekam dalam `TransmittalItem`, mengubah posisi dokumen menjadi berada di ISTEK untuk keperluan inspeksi.
 
-- Admin membuka menu "Transmittal Kirim" dan memilih Tanggal.
-- **ATURAN UI/UX:** Aktifkan mode _Looping Scan_. Admin tidak perlu mengklik tombol "Tambah" berulang kali.
-- Admin memindai **QR Dokumen** disusul memindai **QR 103 / Pengajuan QC** secara berurutan menggunakan barcode scanner.
-- Sistem otomatis merekap seluruh pindaian ke dalam satu daftar (misal: 10 dokumen sekaligus).
-- Admin mencetak Lembar Transmittal sebanyak 2 copy (1 untuk arsip ISTEK, 1 untuk arsip Receiving).
-
-### 2. Transmittal QC Kembali (ISTEK ke Receiving)
-
-- Setelah proses inspeksi selesai, dokumen dikembalikan oleh ISTEK ke Receiving beserta hasilnya (COA/Passed/Rejected).
-- Admin membuka menu "Transmittal Kembali" dan memilih Tanggal.
-- **ATURAN UI/UX:** Aktifkan mode _Looping Scan_.
-- Admin hanya perlu memindai **QR Dokumen** yang ada di map secara bergantian hingga semua berkas hari itu masuk ke dalam daftar terima sistem.
+### 2. Transmittal QC Kembali
+- Dokumen dikembalikan oleh ISTEK beserta hasilnya (Passed/Rejected).
+- Admin membuat Transmittal (Tipe: Kembali) untuk merekap pengembalian dokumen tersebut ke dalam arsip Gudang Receiving.
 
 ---
 
 ## MODUL 3: GRS & RDTV (DIGITALISASI PENAGIHAN)
 
-Modul ini mengelola pencatatan Goods Receipt Slip (GRS) dan Return Delivery to Vendor (RDTV) yang kini sepenuhnya digital (tanpa berkas fisik fisik penagihan) menggunakan basis Surat DOF. Bukti GRS/RDTV ini sangat krusial untuk diteruskan ke tahap Invoicing.
+Modul ini berfokus pada digitalisasi bukti Goods Receipt Slip (GRS) dan Return Delivery to Vendor (RDTV).
 
-### 1. Inisiasi Input (Admin)
-- Admin membuka navigasi "GRS & RDTV", lalu mengklik tombol "Tambah".
-- Admin memilih **Tanggal** eksekusi (contoh: 19/06/2026).
-- Admin memilih jenis **Kategori Dokumen** (GRS atau RDTV).
+### 1. Input Dokumen GRS/RDTV
+- Admin membuat catatan `GrsRdtv` dengan mendefinisikan Kategori (GRS atau RDTV) beserta Tanggal Transaksi.
+- Admin mengunggah bukti fisik digital (PDF dokumen penagihan) melalui `GrsRdtvItem`.
 
-### 2. Bulk Upload & Smart Parsing (Otomatisasi)
-- **ATURAN UI/UX:** Sistem menyediakan area unggah *Multiple Files* (Drag-and-Drop) untuk menangani puluhan dokumen PDF sekaligus.
-- **IDENTIFIKASI NAMA FILE:** Agen/Sistem dilarang meminta input manual untuk pemetaan. Sistem wajib membaca **Nama File** yang diunggah karena nama file tersebut adalah **Kode Dokumen** unik.
-  *(Contoh: Jika file bernama `5300057474-10-5208-17062026.pdf`, sistem mengekstrak string `5300057474-10-5208-17062026`)*.
+### 2. Relasi ke DO
+- Sistem menautkan dokumen GRS/RDTV yang diunggah dengan data Penerimaan DO terkait, menandakan selesainya siklus kedatangan barang administratif.
 
-### 3. Auto-Mapping & Update Status Lintas Modul (Managing Relationship)
-- Begitu file diunggah, sistem melakukan *Query* ke database untuk mencari record di "Penerimaan DO" yang memiliki `Kode Dokumen` identik dengan nama file tersebut.
-- Jika cocok (*match*), sistem mengeksekusi 2 tindakan latar belakang:
-  1. **Relasi Database:** File GRS/RDTV yang diunggah otomatis ditautkan secara digital ke data Penerimaan DO terkait.
-  2. **Auto-Status Update:** Status dokumen pada Penerimaan DO otomatis berubah menjadi **`GRS`** (atau **`RDTV`**).
-- *Tujuan:* Otomatisasi mutlak. Admin tidak perlu mencari dan me-link dokumen satu per satu. Begitu PDF di-upload, status penerimaan DO langsung tertutup dan siap masuk antrean *Invoicing*.
+---
+
+## MODUL 4: PENGAMBILAN BARANG (MATERIAL ISSUED REQUEST)
+
+Modul ini khusus merekam dan melacak pergerakan fisik pengeluaran barang (Issue) dari Gudang ke User (Peminta/Requisitioner) di berbagai titik stage penerimaan.
+
+### 1. Konsep Dasar Tracking Pengambilan
+Aplikasi memungkinkan pendataan pengambilan fisik di fase mana pun barang berada:
+1. **Saat Barang Baru Datang (Pre-QC / DO Receipt):** Fisik barang sifatnya Urgent/Cito sehingga langsung ditarik oleh User meskipun belum di-QC.
+2. **Saat Pengajuan QC (On-QC):** Dokumen masih tertahan di ISTEK untuk diperiksa, namun secara fisik barang sudah diambil User.
+3. **Setelah GRS (Post-GRS):** Normal flow, di mana pengambilan barang dilakukan secara standar setelah administrasi penerimaan selesai 100%.
+
+### 2. Traceability dan Transparansi
+- Setiap barang yang diambil akan dicatat di level Detail (`DeliveryOrderReceiptDetail`).
+- Gudang dapat melihat informasi: Kuantitas barang yang diambil, Tanggal/Waktu Pengambilan, Nama Requisitioner/User yang mengambil, dan **Status DO (Stage)** pada saat pengambilan terjadi.
+- Hal ini menjamin bahwa Gudang Receiving tidak akan kehilangan rekam jejak barang fisik, serta mengetahui dengan pasti alasan hilangnya barang fisik di lokasi.

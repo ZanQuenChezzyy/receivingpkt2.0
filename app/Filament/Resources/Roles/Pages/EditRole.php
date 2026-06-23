@@ -21,6 +21,7 @@ class EditRole extends EditRecord
                 ->hidden(function ($record) {
                     // Ambil semua role ids yang dimiliki user saat ini
                     $userRoleIds = Auth::user()->roles->pluck('id')->toArray();
+
                     // Sembunyikan tombol jika role ini termasuk milik user
                     return in_array($record->id, $userRoleIds);
                 }),

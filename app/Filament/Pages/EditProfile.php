@@ -2,13 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -63,8 +62,8 @@ class EditProfile extends BaseEditProfile
                                     ->revealable(filament()->arePasswordsRevealable())
                                     ->rule(Password::default())
                                     ->autocomplete('new-password')
-                                    ->dehydrated(fn($state): bool => filled($state))
-                                    ->dehydrateStateUsing(fn($state): string => Hash::make($state))
+                                    ->dehydrated(fn ($state): bool => filled($state))
+                                    ->dehydrateStateUsing(fn ($state): string => Hash::make($state))
                                     ->live(debounce: 500)
                                     ->same('passwordConfirmation'),
 
@@ -74,9 +73,9 @@ class EditProfile extends BaseEditProfile
                                     ->password()
                                     ->revealable(filament()->arePasswordsRevealable())
                                     ->required()
-                                    ->visible(fn(Get $get): bool => filled($get('password')))
+                                    ->visible(fn (Get $get): bool => filled($get('password')))
                                     ->dehydrated(false),
-                            ])
+                            ]),
                     ]),
             ]);
     }

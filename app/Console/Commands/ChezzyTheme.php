@@ -17,12 +17,13 @@ class ChezzyTheme extends Command
     {
         $theme = $this->argument('theme');
 
-        if (!$theme) {
+        if (! $theme) {
             $theme = $this->chooseTheme();
         }
 
-        if (!in_array($theme, ['default', 'neobrutalism'])) {
+        if (! in_array($theme, ['default', 'neobrutalism'])) {
             $this->error('Theme tidak valid');
+
             return;
         }
 
@@ -50,7 +51,6 @@ class ChezzyTheme extends Command
         };
     }
 
-
     private function updateConfig(string $theme): void
     {
         $path = config_path('chezzy.php');
@@ -77,7 +77,7 @@ class ChezzyTheme extends Command
         $path = resource_path('css/filament/admin/theme.css');
 
         $css = match ($theme) {
-            'neobrutalism' => <<<CSS
+            'neobrutalism' => <<<'CSS'
 @import "../../../../vendor/filament/filament/resources/css/theme.css";
 
 @source '../../../../app/Filament/**/*';
@@ -86,7 +86,7 @@ class ChezzyTheme extends Command
 @source '../../../../vendor/devonab/filament-easy-footer/resources/views/**/*';
 CSS,
 
-            default => <<<CSS
+            default => <<<'CSS'
 @import "../../../../vendor/filament/filament/resources/css/theme.css";
 
 @source '../../../../app/Filament/**/*';

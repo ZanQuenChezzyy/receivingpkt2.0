@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MonitoringChemicals\Pages;
 
 use App\Filament\Resources\MonitoringChemicals\MonitoringChemicalResource;
+use App\Services\SyncChemicalToDeliveryOrderService;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
@@ -24,6 +25,6 @@ class EditMonitoringChemical extends EditRecord
         $record = $this->record;
 
         // Sync ke Delivery Order Receipt
-        app(\App\Services\SyncChemicalToDeliveryOrderService::class)->sync($record);
+        app(SyncChemicalToDeliveryOrderService::class)->sync($record);
     }
 }

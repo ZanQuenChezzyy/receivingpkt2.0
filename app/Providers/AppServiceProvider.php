@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         FilamentView::registerRenderHook(
             PanelsRenderHook::SIDEBAR_NAV_START,
-            fn(): View => view('chezzy.user-card')
+            fn (): View => view('chezzy.user-card')
         );
     }
 }

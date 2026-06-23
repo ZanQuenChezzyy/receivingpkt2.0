@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ChemicalQcTuvs;
 use App\Filament\Resources\ChemicalQcTuvs\Pages\ManageChemicalQcTuvs;
 use App\Models\ChemicalQcTuv;
 use BackedEnum;
-use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -19,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ChemicalQcTuvResource extends Resource
 {

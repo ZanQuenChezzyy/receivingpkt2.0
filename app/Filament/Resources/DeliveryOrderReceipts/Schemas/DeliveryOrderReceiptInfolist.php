@@ -4,6 +4,7 @@ namespace App\Filament\Resources\DeliveryOrderReceipts\Schemas;
 
 use App\Models\DeliveryOrderReceiptDetail;
 use App\Models\PurchaseOrderIssued;
+use Carbon\Carbon;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -224,6 +225,7 @@ class DeliveryOrderReceiptInfolist
                                                 if ($po && $po->qty_po > 0) {
                                                     return (float) $po->total_amount_in_lc / (float) $po->qty_po;
                                                 }
+
                                                 return $po ? $po->net_price : 0;
                                             })
                                             ->placeholder('Harga tidak tersedia'),
@@ -240,6 +242,61 @@ class DeliveryOrderReceiptInfolist
                 ]),
 
                 Group::make([
+                    Section::make('Riwayat Pengambilan Barang (MIR)')
+                        ->icon('heroicon-o-arrow-right-on-rectangle')
+                        ->schema([
+                            TextEntry::make('riwayat_pengambilan')
+                                ->hiddenLabel()
+                                ->html()
+                                ->getStateUsing(function ($record) {
+                                    $details = $record->deliveryOrderReceiptDetails()->with('materialIssueDetails.materialIssue')->get();
+                                    $mirs = [];
+                                    foreach ($details as $d) {
+                                        foreach ($d->materialIssueDetails as $mid) {
+                                            $mirs[] = [
+                                                'mir_number' => $mid->materialIssue->mir_number,
+                                                'tanggal' => $mid->materialIssue->tanggal,
+                                                'peminta' => $mid->materialIssue->diminta_oleh,
+                                                'item' => $d->description,
+                                                'qty' => number_format((float) $mid->diserahkan, 0, ',', '.'),
+                                                'stage' => $mid->stage_when_issued,
+                                                'uoi' => $d->uoi,
+                                            ];
+                                        }
+                                    }
+                                    if (empty($mirs)) {
+                                        return '<p class="text-sm text-gray-500 dark:text-gray-400">Belum ada barang yang diambil.</p>';
+                                    }
+
+                                    $html = '<div class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10"><table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-white/5 dark:text-gray-300">
+                                            <tr>
+                                                <th class="px-4 py-3">No. MIR</th>
+                                                <th class="px-4 py-3">Tanggal</th>
+                                                <th class="px-4 py-3">Peminta</th>
+                                                <th class="px-4 py-3">Item</th>
+                                                <th class="px-4 py-3">Qty Diambil</th>
+                                                <th class="px-4 py-3">Stage Saat Diambil</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>';
+                                    foreach ($mirs as $m) {
+                                        $stageLabel = $m['stage'] ?? 'Default';
+                                        $html .= '<tr class="bg-white border-b dark:bg-transparent dark:border-white/5">
+                                            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">'.$m['mir_number'].'</td>
+                                            <td class="px-4 py-3">'.Carbon::parse($m['tanggal'])->format('d M Y').'</td>
+                                            <td class="px-4 py-3">'.$m['peminta'].'</td>
+                                            <td class="px-4 py-3">'.$m['item'].'</td>
+                                            <td class="px-4 py-3 text-success-600 dark:text-success-400 font-bold">'.$m['qty'].' '.$m['uoi'].'</td>
+                                            <td class="px-4 py-3"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-md dark:bg-blue-900/30 dark:text-blue-300">'.$stageLabel.'</span></td>
+                                        </tr>';
+                                    }
+                                    $html .= '</tbody></table></div>';
+
+                                    return $html;
+                                }),
+                        ]),
+
                     Section::make('Status Progress')
                         ->icon('heroicon-o-chart-bar')
                         ->schema([

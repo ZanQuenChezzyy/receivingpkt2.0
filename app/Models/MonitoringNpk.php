@@ -84,20 +84,20 @@ class MonitoringNpk extends Model
             empty($this->received_date) ||
             empty($this->laprima_date) ||
             empty($this->coa_date) ||
-            trim((string)$this->delivery_oder_number) === '' ||
-            trim((string)$this->stage) === ''
+            trim((string) $this->delivery_oder_number) === '' ||
+            trim((string) $this->stage) === ''
         ) {
             return false;
         }
 
         $hasA = filled($this->purchase_order_status_a_date) && is_array($this->purchase_order_status_a_files) && count($this->purchase_order_status_a_files) > 0;
         $hasB = filled($this->purchase_order_status_b_date);
-        
-        if (!$hasA && !$hasB) {
+
+        if (! $hasA && ! $hasB) {
             return false;
         }
 
-        if (!is_array($this->coa_files) || count($this->coa_files) === 0) {
+        if (! is_array($this->coa_files) || count($this->coa_files) === 0) {
             return false;
         }
 
@@ -107,7 +107,7 @@ class MonitoringNpk extends Model
         }
 
         foreach ($details as $detail) {
-            if (trim((string)$detail->quantity) === '' || is_null($detail->quantity) || (float)$detail->quantity <= 0) {
+            if (trim((string) $detail->quantity) === '' || is_null($detail->quantity) || (float) $detail->quantity <= 0) {
                 return false;
             }
         }

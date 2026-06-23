@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Transmittals\Tables;
 
+use App\Filament\Resources\Transmittals\TransmittalResource;
+use App\Models\Transmittal;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TransmittalsTable
@@ -52,13 +55,13 @@ class TransmittalsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label('Tipe Transmittal')
                     ->options([
                         'Kirim' => 'Kirim',
                         'Kembali' => 'Kembali',
                     ]),
-                \Filament\Tables\Filters\SelectFilter::make('destination')
+                SelectFilter::make('destination')
                     ->label('Tujuan')
                     ->options([
                         'ISTEK' => 'ISTEK',
@@ -70,7 +73,7 @@ class TransmittalsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make()
-                    ->url(fn (\App\Models\Transmittal $record): string => \App\Filament\Resources\Transmittals\TransmittalResource::getUrl('bulk-scan', ['id' => $record->id])),
+                    ->url(fn (Transmittal $record): string => TransmittalResource::getUrl('bulk-scan', ['id' => $record->id])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

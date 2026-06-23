@@ -51,7 +51,7 @@ class ChezzyRelation extends Command
 
             $relationTypeIndex = (int) $this->ask("\033[36mMasukkan\033[0m [\033[33mnomor\033[0m] \033[36m tipe relasi yang diinginkan\033[0m");
 
-            while (!isset($relationTypes[$relationTypeIndex])) {
+            while (! isset($relationTypes[$relationTypeIndex])) {
                 $this->info("\033[31m Pilihan tidak valid. Silakan masukkan angka yang benar.\033[0m");
                 $relationTypeIndex = (int) $this->ask("\033[36mMasukkan\033[0m [\033[33mnomor\033[0m] \033[36mtipe relasi yang diinginkan\033[0m", '2');
             }
@@ -59,7 +59,7 @@ class ChezzyRelation extends Command
             $relationType = $relationTypes[$relationTypeIndex];
 
             // Tampilkan daftar model tanpa model sumber yang sudah dipilih
-            $filteredModels = array_filter($models, fn($m) => $m !== $sourceModel);
+            $filteredModels = array_filter($models, fn ($m) => $m !== $sourceModel);
             $filteredModels = array_values($filteredModels);
 
             $this->info("\033[36mModel yang Ditemukan\033[0m :");
@@ -71,7 +71,7 @@ class ChezzyRelation extends Command
 
             $intermediateModel = null;
             if (in_array($relationType, ['hasOneThrough', 'hasManyThrough'])) {
-                $filteredModels = array_filter($filteredModels, fn($m) => $m !== $targetModel);
+                $filteredModels = array_filter($filteredModels, fn ($m) => $m !== $targetModel);
                 $filteredModels = array_values($filteredModels);
 
                 $this->info("\033[36m Model yang Ditemukan\033[0m :");
@@ -87,7 +87,7 @@ class ChezzyRelation extends Command
             $relatedPivotKey = null;
 
             if ($relationType === 'belongsToMany') {
-                $filteredModels = array_filter($filteredModels, fn($m) => $m !== $targetModel);
+                $filteredModels = array_filter($filteredModels, fn ($m) => $m !== $targetModel);
                 $filteredModels = array_values($filteredModels);
                 $this->info("\033[36mModel yang Ditemukan untuk Tabel Pivot\033[0m :");
                 foreach ($filteredModels as $index => $model) {
@@ -97,8 +97,8 @@ class ChezzyRelation extends Command
                 $pivotModel = $this->askForModel("\033[36mMasukkan\033[0m [\033[33mnomor\033[0m] \033[36mmodel\033[0m [\033[33mpivot\033[0m]", $filteredModels);
 
                 $pivotTable = Str::snake($pivotModel);
-                $foreignPivotKey = Str::snake($sourceModel) . '_id';
-                $relatedPivotKey = Str::snake($targetModel) . '_id';
+                $foreignPivotKey = Str::snake($sourceModel).'_id';
+                $relatedPivotKey = Str::snake($targetModel).'_id';
             }
 
             $relations[] = [
@@ -124,7 +124,7 @@ class ChezzyRelation extends Command
     private function getModels(string $modelsDir): array
     {
         return collect(File::files($modelsDir))
-            ->map(fn($file) => pathinfo($file, PATHINFO_FILENAME))
+            ->map(fn ($file) => pathinfo($file, PATHINFO_FILENAME))
             ->values()
             ->all();
     }
@@ -137,7 +137,7 @@ class ChezzyRelation extends Command
         do {
             $index = (int) $this->ask($message);
             $model = $models[$index] ?? null;
-        } while (!$model || in_array($model, $exclude));
+        } while (! $model || in_array($model, $exclude));
 
         return $model;
     }
@@ -189,7 +189,7 @@ class ChezzyRelation extends Command
 
         $stubPath = app_path("Console/Commands/Template/Relation/{$relationType}.stub");
 
-        if (!File::exists($stubPath)) {
+        if (! File::exists($stubPath)) {
             $this->abortProcess("file tidak ditemukan: $stubPath");
         }
 
@@ -203,11 +203,11 @@ class ChezzyRelation extends Command
 
         $relatedClass = "\\App\\Models\\$targetModel::class";
         $intermediateClass = $intermediateModel ? "\\App\\Models\\$intermediateModel::class" : '';
-        $foreignKey = Str::snake($targetModel) . "_id";
+        $foreignKey = Str::snake($targetModel).'_id';
 
         // Memperbaiki penentuan foreign key untuk belongsTo
         if ($relationType === 'belongsTo') {
-            $foreignKey = Str::snake($relation['target'] ?? $targetModel) . "_id";
+            $foreignKey = Str::snake($relation['target'] ?? $targetModel).'_id';
         }
 
         $extraParams = '';
@@ -215,7 +215,7 @@ class ChezzyRelation extends Command
         switch ($relationType) {
             case 'hasOneThrough':
             case 'hasManyThrough':
-                if (!$intermediateModel) {
+                if (! $intermediateModel) {
                     $this->abortProcess("Tipe relasi $relationType membutuhkan model perantara.");
                 }
                 $extraParams = ", $intermediateClass";
@@ -248,7 +248,7 @@ class ChezzyRelation extends Command
         // Tambahan logika agar pengecekan method singular/plural lebih akurat
         $singularMethodName = Str::camel($target);
 
-        if (!str_contains($fileContent, "function $methodName()") && !str_contains($fileContent, "function $singularMethodName()")) {
+        if (! str_contains($fileContent, "function $methodName()") && ! str_contains($fileContent, "function $singularMethodName()")) {
             $fileContent = preg_replace('/}\s*$/', "\n    $relationMethod\n}", $fileContent);
             file_put_contents($filePath, $fileContent);
             $this->info(" Relasi dari $source ke $target berhasil ditambahkan.");

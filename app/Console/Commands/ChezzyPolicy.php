@@ -19,7 +19,7 @@ class ChezzyPolicy extends Command
     {
         $modelsDir = app_path('Models');
         $models = collect(File::files($modelsDir))
-            ->map(fn($file) => pathinfo($file, PATHINFO_FILENAME))
+            ->map(fn ($file) => pathinfo($file, PATHINFO_FILENAME))
             ->values()
             ->all();
 
@@ -36,12 +36,12 @@ class ChezzyPolicy extends Command
 
         $selectedIndexes = array_map('trim', explode(',', $indexes));
         $selectedModels = collect($selectedIndexes)
-            ->filter(fn($i) => isset($models[$i]))
-            ->map(fn($i) => $models[$i])
+            ->filter(fn ($i) => isset($models[$i]))
+            ->map(fn ($i) => $models[$i])
             ->all();
 
         if (empty($selectedModels)) {
-            return $this->error("Tidak ada model valid yang dipilih.");
+            return $this->error('Tidak ada model valid yang dipilih.');
         }
 
         foreach ($selectedModels as $model) {
@@ -64,6 +64,7 @@ class ChezzyPolicy extends Command
         // Exit code 0 berarti sukses
         if ($exitCode !== 0) {
             $this->error("Gagal membuat policy untuk model $model.");
+
             return;
         }
 
@@ -72,8 +73,9 @@ class ChezzyPolicy extends Command
         // Overwrite dengan isi custom
         $policyPath = app_path("Policies/{$policyName}.php");
 
-        if (!File::exists($policyPath)) {
+        if (! File::exists($policyPath)) {
             $this->error("Policy file tidak ditemukan: $policyPath");
+
             return;
         }
 

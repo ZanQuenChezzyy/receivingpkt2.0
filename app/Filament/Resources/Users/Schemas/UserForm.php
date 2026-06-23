@@ -83,12 +83,10 @@ class UserForm
                             ->unique(ignoreRecord: true),
                         TextInput::make('password')
                             ->label(
-                                fn($record) =>
-                                $record ? __('user.password_edit') : __('user.password')
+                                fn ($record) => $record ? __('user.password_edit') : __('user.password')
                             )
                             ->placeholder(
-                                fn($record) =>
-                                $record ? __('user.password_optional') : __('user.password_placeholder')
+                                fn ($record) => $record ? __('user.password_optional') : __('user.password_placeholder')
                             )
                             ->inlineLabel()
                             ->columnSpanFull()
@@ -96,11 +94,11 @@ class UserForm
                             ->revealable(filament()->arePasswordsRevealable())
                             ->rule(Password::default())
                             ->autocomplete('new-password')
-                            ->dehydrated(fn($state): bool => filled($state))
-                            ->dehydrateStateUsing(fn($state): string => Hash::make($state))
+                            ->dehydrated(fn ($state): bool => filled($state))
+                            ->dehydrateStateUsing(fn ($state): string => Hash::make($state))
                             ->live(debounce: 500)
                             ->same('passwordConfirmation')
-                            ->required(fn($record) => is_null($record)),
+                            ->required(fn ($record) => is_null($record)),
 
                         TextInput::make('passwordConfirmation')
                             ->label(__('user.password_confirm'))
@@ -110,27 +108,27 @@ class UserForm
                             ->password()
                             ->revealable(filament()->arePasswordsRevealable())
                             ->required()
-                            ->visible(fn(Get $get): bool => filled($get('password')))
+                            ->visible(fn (Get $get): bool => filled($get('password')))
                             ->dehydrated(false),
                     ])->columnSpan([
-                            'default' => fn(?User $record) => $record === null ? 3 : 3,
-                            'sm' => fn(?User $record) => $record === null ? 2 : 3,
-                            'md' => fn(?User $record) => $record === null ? 3 : 3,
-                            'lg' => fn(?User $record) => $record === null ? 4 : 4,
-                            'xl' => fn(?User $record) => $record === null ? 3 : 2,
-                            '2xl' => fn(?User $record) => $record === null ? 3 : 2,
-                        ])
+                        'default' => fn (?User $record) => $record === null ? 3 : 3,
+                        'sm' => fn (?User $record) => $record === null ? 2 : 3,
+                        'md' => fn (?User $record) => $record === null ? 3 : 3,
+                        'lg' => fn (?User $record) => $record === null ? 4 : 4,
+                        'xl' => fn (?User $record) => $record === null ? 3 : 2,
+                        '2xl' => fn (?User $record) => $record === null ? 3 : 2,
+                    ])
                     ->columns(2),
 
                 Section::make()
                     ->schema([
                         TextEntry::make('created_at')
                             ->label(__('user.created_at'))
-                            ->formatStateUsing(fn(User $record): ?string => $record->created_at?->diffForHumans()),
+                            ->formatStateUsing(fn (User $record): ?string => $record->created_at?->diffForHumans()),
 
                         TextEntry::make('updated_at')
                             ->label(__('user.updated_at'))
-                            ->formatStateUsing(fn(User $record): ?string => $record->updated_at?->diffForHumans()),
+                            ->formatStateUsing(fn (User $record): ?string => $record->updated_at?->diffForHumans()),
                     ])
                     ->columnSpan([
                         'default' => 3,
@@ -140,7 +138,7 @@ class UserForm
                         'xl' => 1,
                         '2xl' => 1,
                     ])
-                    ->hidden(fn(?User $record) => $record === null)
+                    ->hidden(fn (?User $record) => $record === null),
             ])->columns(4);
     }
 }

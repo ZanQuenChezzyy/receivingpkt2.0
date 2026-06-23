@@ -32,9 +32,8 @@ class UserInfolist
                                     ->visibility('public')
                                     ->circular()
                                     ->defaultImageUrl(
-                                        fn($record) =>
-                                        'https://ui-avatars.com/api/?name=' .
-                                        urlencode($record->name) .
+                                        fn ($record) => 'https://ui-avatars.com/api/?name='.
+                                        urlencode($record->name).
                                         '&background=030712&color=FFFFFF'
                                     )
                                     ->columnSpan(1),
@@ -82,11 +81,11 @@ class UserInfolist
                                         ->placeholder(__('user.email_verification_status_placeholder'))
                                         ->badge()
                                         ->formatStateUsing(
-                                            fn($state) => $state
+                                            fn ($state) => $state
                                             ? __('user.email_verified')
                                             : __('user.email_not_verified')
                                         )
-                                        ->color(fn($state) => $state ? 'success' : 'danger'),
+                                        ->color(fn ($state) => $state ? 'success' : 'danger'),
                                 ]),
                         ]),
 
@@ -105,18 +104,18 @@ class UserInfolist
                                         ->label(__('user.created_at'))
                                         ->icon('heroicon-o-calendar')
                                         ->formatStateUsing(
-                                            fn($state) => $state?->diffForHumans() ?? '-'
+                                            fn ($state) => $state?->diffForHumans() ?? '-'
                                         ),
 
                                     TextEntry::make('updated_at')
                                         ->label(__('user.updated_at'))
                                         ->icon('heroicon-o-arrow-path')
                                         ->formatStateUsing(
-                                            fn($state) => $state?->diffForHumans() ?? '-'
+                                            fn ($state) => $state?->diffForHumans() ?? '-'
                                         ),
                                 ]),
                         ]),
-                ])
+                ]),
 
             ]);
     }

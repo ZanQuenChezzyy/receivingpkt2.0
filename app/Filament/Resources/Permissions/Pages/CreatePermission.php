@@ -15,7 +15,7 @@ class CreatePermission extends CreateRecord
         $baseName = $data['name'];
 
         // Jika tidak mengandung action keyword
-        if (!preg_match('/\b(View|Create|Update|Delete|Restore|Force Delete|View Any)\b/i', $baseName)) {
+        if (! preg_match('/\b(View|Create|Update|Delete|Restore|Force Delete|View Any)\b/i', $baseName)) {
             $actions = ['View Any', 'View', 'Create', 'Update', 'Delete', 'Restore', 'Force Delete'];
 
             $firstModel = null;
@@ -27,7 +27,7 @@ class CreatePermission extends CreateRecord
                 ]);
 
                 // Simpan model pertama untuk dikembalikan ke Filament (mencegah error missing record)
-                if (!$firstModel) {
+                if (! $firstModel) {
                     $firstModel = $permission;
                 }
             }

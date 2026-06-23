@@ -30,7 +30,7 @@ class QcHistory extends Model
                 } elseif ($qcHistory->status === 'Revisi') {
                     $doReceipt->status = 'Pending (Menunggu Pengajuan Ulang)';
                 }
-                
+
                 $doReceipt->save();
             }
         });

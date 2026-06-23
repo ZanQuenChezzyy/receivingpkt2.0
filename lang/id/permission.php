@@ -26,8 +26,7 @@ return [
     // Form Sections
     'permission_information' => 'Informasi Perizinan',
     'permission_information_desc' => 'Digunakan untuk mengatur hak akses sistem.',
-    'helper_text_permission' =>
-        'Masukkan nama izin dengan format seperti <strong>View Any User</strong>, <strong>Create User</strong>, atau <strong>Delete User</strong>.
+    'helper_text_permission' => 'Masukkan nama izin dengan format seperti <strong>View Any User</strong>, <strong>Create User</strong>, atau <strong>Delete User</strong>.
         <br><strong>Catatan:</strong> Gantilah kata <strong>"User"</strong> dengan entitas yang sesuai, misalnya <strong>View Any Order</strong> atau <strong>Create Product</strong>.
         <br><strong>Wajib:</strong> Setiap entitas harus memiliki <strong>7 izin</strong> berikut dengan format yang <u>persis</u> seperti di bawah ini:<br>
         <ul>

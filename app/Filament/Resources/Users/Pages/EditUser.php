@@ -20,7 +20,7 @@ class EditUser extends EditRecord
             DeleteAction::make()
                 ->label(__('user.delete_user'))
                 ->icon(Heroicon::Trash)
-                ->visible(fn(): bool => $this->record->id !== Auth::id()),
+                ->visible(fn (): bool => $this->record->id !== Auth::id()),
         ];
     }
 }

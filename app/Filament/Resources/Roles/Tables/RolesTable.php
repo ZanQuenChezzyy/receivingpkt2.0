@@ -47,6 +47,7 @@ class RolesTable
                         ->icon(Heroicon::Trash)
                         ->hidden(function ($record) {
                             $userRoleIds = Auth::user()->roles->pluck('id')->toArray();
+
                             return in_array($record->id, $userRoleIds);
                         }),
                 ])

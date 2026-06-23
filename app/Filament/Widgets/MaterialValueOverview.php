@@ -83,27 +83,27 @@ class MaterialValueOverview extends BaseWidget
             // Baris: Kedatangan Murni (Warna Biru Netral)
             $descriptionHtml .= '<div class="flex items-start justify-between gap-2 font-medium text-blue-600 dark:text-blue-400">';
             $descriptionHtml .= '  <span class="flex items-center gap-1.5 leading-tight"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg> Kedatangan</span>';
-            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp' . number_format($kedatanganMurni, 0, ',', '.') . '</span>';
+            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp'.number_format($kedatanganMurni, 0, ',', '.').'</span>';
             $descriptionHtml .= '</div>';
 
             // Baris: Datang & Selesai GRS (Warna Hijau)
             $descriptionHtml .= '<div class="flex items-start justify-between gap-2 font-medium text-success-600 dark:text-success-400">';
             $descriptionHtml .= '  <span class="flex items-center gap-1.5 leading-tight"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Selesai</span>';
-            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp' . number_format($kedatanganDanGrs, 0, ',', '.') . '</span>';
+            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp'.number_format($kedatanganDanGrs, 0, ',', '.').'</span>';
             $descriptionHtml .= '</div>';
 
             // Baris: Belum GRS (Warna Merah)
             $descriptionHtml .= '<div class="flex items-start justify-between gap-2 font-medium text-danger-600 dark:text-danger-400">';
             $descriptionHtml .= '  <span class="flex items-center gap-1.5 leading-tight"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Belum GRS</span>';
-            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp' . number_format($belumGrs, 0, ',', '.') . '</span>';
+            $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp'.number_format($belumGrs, 0, ',', '.').'</span>';
             $descriptionHtml .= '</div>';
 
             if ($abcIndicators->isNotEmpty()) {
                 $descriptionHtml .= '<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>';
                 foreach ($abcIndicators as $abc) {
                     $descriptionHtml .= '<div class="flex items-start justify-between gap-2 text-gray-600 dark:text-gray-300">';
-                    $descriptionHtml .= '  <span class="flex items-center gap-1.5 leading-tight"><svg class="w-2.5 h-2.5 shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"></circle></svg> Tipe ' . $abc->abc_indicator . '</span>';
-                    $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp' . number_format($abc->total, 0, ',', '.') . '</span>';
+                    $descriptionHtml .= '  <span class="flex items-center gap-1.5 leading-tight"><svg class="w-2.5 h-2.5 shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"></circle></svg> Tipe '.$abc->abc_indicator.'</span>';
+                    $descriptionHtml .= '  <span class="whitespace-nowrap ml-auto text-right">Rp'.number_format($abc->total, 0, ',', '.').'</span>';
                     $descriptionHtml .= '</div>';
                 }
             }
@@ -112,7 +112,7 @@ class MaterialValueOverview extends BaseWidget
             $color = $uiConfig[$mrpType]['color'] ?? 'primary';
             $icon = $uiConfig[$mrpType]['icon'] ?? 'heroicon-m-chart-bar';
 
-            $stats[] = Stat::make('Total GRS ' . $mrpType, 'Rp' . number_format($totalGrsBulanIni, 0, ',', '.'))
+            $stats[] = Stat::make('Total GRS '.$mrpType, 'Rp'.number_format($totalGrsBulanIni, 0, ',', '.'))
                 ->description(new HtmlString($descriptionHtml))
                 ->color($color);
         }

@@ -18,9 +18,9 @@ class Chezzy extends Command
     public function handle()
     {
         $this->line("\033[31m     __                                __________                        ");
-        $this->line("    / /   ____ __________ __   _____  / / ____/ /_  ___  ________  __  __");
+        $this->line('    / /   ____ __________ __   _____  / / ____/ /_  ___  ________  __  __');
         $this->line("   / /   / __ `/ ___/ __ `/ | / / _ \/ / /   / __ \/ _ \/_  /_  / / / / /");
-        $this->line("  / /___/ /_/ / /  / /_/ /| |/ /  __/ / /___/ / / /  __/ / /_/ /_/ /_/ / ");
+        $this->line('  / /___/ /_/ / /  / /_/ /| |/ /  __/ / /___/ / / /  __/ / /_/ /_/ /_/ / ');
         $this->line(" /_____/\__,_/_/   \__,_/ |___/\___/_/\____/_/ /_/\___/ /___/___/\__, /  ");
         $this->line("                                                                /____/   \033[0m");
         $this->line("\033[37m By \033[31mAndereyan Muhammat\033[0m");
@@ -34,6 +34,7 @@ class Chezzy extends Command
 
             if (empty($appName)) {
                 $this->warn("\033[31m Nama aplikasi tidak boleh kosong. Silakan masukkan kembali.\033[0m");
+
                 continue;
             }
 
@@ -41,22 +42,23 @@ class Chezzy extends Command
 
             $confirmed = $this->confirm("\033[36mApakah Anda yakin dengan nama aplikasi \033[37m[\033[0m\033[33m$appName\033[33m\033[37m]\033[0m ?\033[0m\033[33m", true);
 
-            if (!$confirmed) {
+            if (! $confirmed) {
                 $this->warn("\033[31m Silakan masukkan nama aplikasi lagi.\033[0m");
             }
 
-        } while (empty($appName) || !$confirmed);
+        } while (empty($appName) || ! $confirmed);
 
         $this->updateEnv($appName, $dbDatabase);
 
-        if (!$this->confirm("\033[33mApakah Anda ingin melanjutkan setup\033[0m ?\033[33m", true)) {
+        if (! $this->confirm("\033[33mApakah Anda ingin melanjutkan setup\033[0m ?\033[33m", true)) {
             $this->warn('Proses setup dibatalkan.');
+
             return;
         }
 
         $tasks = [
-            'Menyalin .env & generate key' => fn() => $this->setupEnv(),
-            'Menginstall NPM dependencies & build' => fn() => $this->runProcess(['npm', 'install', '&&', 'npm', 'run', 'build']),
+            'Menyalin .env & generate key' => fn () => $this->setupEnv(),
+            'Menginstall NPM dependencies & build' => fn () => $this->runProcess(['npm', 'install', '&&', 'npm', 'run', 'build']),
         ];
 
         $messages = [
@@ -75,20 +77,20 @@ class Chezzy extends Command
         foreach ($tasks as $task => $callback) {
             $index++;
 
-            $progressBar = str_repeat('=', intval(($index / $totalTasks) * $progressWidth)) . ">" . str_repeat('-', $progressWidth - intval(($index / $totalTasks) * $progressWidth));
-            $progressText = " $index/$totalTasks [$progressBar]  " . intval(($index / $totalTasks) * 100) . "% <fg=yellow>$task!</>";
+            $progressBar = str_repeat('=', intval(($index / $totalTasks) * $progressWidth)).'>'.str_repeat('-', $progressWidth - intval(($index / $totalTasks) * $progressWidth));
+            $progressText = " $index/$totalTasks [$progressBar]  ".intval(($index / $totalTasks) * 100)."% <fg=yellow>$task!</>";
 
-            $this->output->write("\033[2K\r" . str_pad($progressText, 100));
+            $this->output->write("\033[2K\r".str_pad($progressText, 100));
 
             $status = $callback();
 
             $message = $messages[$task][$status ? 0 : 1];
 
-            $results[] = (!$status ? "<fg=yellow>(Warning)</> " : "<fg=cyan>(success)</> ") . "$index/$totalTasks $message";
+            $results[] = (! $status ? '<fg=yellow>(Warning)</> ' : '<fg=cyan>(success)</> ')."$index/$totalTasks $message";
 
-            $progressText = " $index/$totalTasks [$progressBar]  " . intval(($index / $totalTasks) * 100) . "%";
+            $progressText = " $index/$totalTasks [$progressBar]  ".intval(($index / $totalTasks) * 100).'%';
 
-            $this->output->write("\033[2K\r" . str_pad($progressText, 100));
+            $this->output->write("\033[2K\r".str_pad($progressText, 100));
         }
 
         $this->output->write("\033[?25h");
@@ -104,12 +106,14 @@ class Chezzy extends Command
 
     private function setupEnv(): bool
     {
-        if (!File::exists(base_path('.env'))) {
+        if (! File::exists(base_path('.env'))) {
             File::copy(base_path('.env.example'), base_path('.env'));
             $this->callSilent('key:generate');
             $this->callSilent('storage:link');
+
             return true;
         }
+
         return false;
     }
 
@@ -121,8 +125,9 @@ class Chezzy extends Command
         // Tentukan file mana yang akan diubah
         $filePath = File::exists($envPath) ? $envPath : $envExamplePath;
 
-        if (!File::exists($filePath)) {
+        if (! File::exists($filePath)) {
             $this->error("File $filePath tidak ditemukan.");
+
             return;
         }
 

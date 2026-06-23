@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
         "caresome/filament-auth-designer": "^3.1",
         "caresome/filament-neobrutalism-theme": "^2.1",
         "devonab/filament-easy-footer": "^2.2",

@@ -7,6 +7,7 @@ use App\Filament\Resources\DeliveryOrderReceipts\Pages\EditDeliveryOrderReceipt;
 use App\Filament\Resources\DeliveryOrderReceipts\Pages\ListDeliveryOrderReceipts;
 use App\Filament\Resources\DeliveryOrderReceipts\Pages\ViewDeliveryOrderReceipt;
 use App\Filament\Resources\DeliveryOrderReceipts\RelationManagers\QcHistoriesRelationManager;
+use App\Filament\Resources\DeliveryOrderReceipts\RelationManagers\TransmittalsRelationManager;
 use App\Filament\Resources\DeliveryOrderReceipts\Schemas\DeliveryOrderReceiptForm;
 use App\Filament\Resources\DeliveryOrderReceipts\Schemas\DeliveryOrderReceiptInfolist;
 use App\Filament\Resources\DeliveryOrderReceipts\Tables\DeliveryOrderReceiptsTable;
@@ -16,7 +17,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-
 use UnitEnum;
 
 class DeliveryOrderReceiptResource extends Resource
@@ -60,12 +60,12 @@ class DeliveryOrderReceiptResource extends Resource
     {
         return DeliveryOrderReceiptsTable::configure($table);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             QcHistoriesRelationManager::class,
-            \App\Filament\Resources\DeliveryOrderReceipts\RelationManagers\TransmittalsRelationManager::class,
+            TransmittalsRelationManager::class,
         ];
     }
 

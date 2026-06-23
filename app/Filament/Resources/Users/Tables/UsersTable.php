@@ -26,18 +26,18 @@ class UsersTable
 
                         $nameParts = explode(' ', trim($record->name));
                         $initials = isset($nameParts[1])
-                            ? strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1))
+                            ? strtoupper(substr($nameParts[0], 0, 1).substr($nameParts[1], 0, 1))
                             : strtoupper(substr($nameParts[0], 0, 1));
 
                         $avatarUrl = $record->avatar_url
-                            ? asset('storage/' . $record->avatar_url)
-                            : 'https://ui-avatars.com/api/?name=' . urlencode($initials) . '&color=FFFFFF&background=030712';
+                            ? asset('storage/'.$record->avatar_url)
+                            : 'https://ui-avatars.com/api/?name='.urlencode($initials).'&color=FFFFFF&background=030712';
 
                         return '
                             <div class="flex items-center gap-3 min-w-[16rem]">
                                 <!-- Avatar -->
                                 <img
-                                    src="' . $avatarUrl . '"
+                                    src="'.$avatarUrl.'"
                                     alt="Avatar User"
                                     class="w-10 h-10 rounded-lg object-cover
                                         ring-1 ring-gray-300/40 dark:ring-white/20
@@ -47,10 +47,10 @@ class UsersTable
                                 <!-- User Info -->
                                 <div class="flex flex-col leading-tight">
                                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                        ' . e($record->name) . '
+                                        '.e($record->name).'
                                     </span>
                                     <span class="text-xs text-gray-500 dark:text-gray-400">
-                                        ' . e($record->email) . '
+                                        '.e($record->email).'
                                     </span>
                                 </div>
                             </div>
@@ -79,7 +79,7 @@ class UsersTable
                     DeleteAction::make()
                         ->label(__('user.delete_user'))
                         ->icon(Heroicon::Trash)
-                        ->visible(fn(User $record): bool => $record->id !== Auth::id()),
+                        ->visible(fn (User $record): bool => $record->id !== Auth::id()),
                 ])
                     ->label('')
                     ->icon('heroicon-m-ellipsis-horizontal')

@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\{
-    MonitoringNpk,
-    DeliveryOrderReceipt,
-    DeliveryOrderReceiptDetail,
-    PurchaseOrderIssued
-};
+use App\Models\DeliveryOrderReceipt;
+use App\Models\DeliveryOrderReceiptDetail;
+use App\Models\MonitoringNpk;
+use App\Models\PurchaseOrderIssued;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 
 class SyncNpkToDeliveryOrderService
 {
@@ -23,7 +21,7 @@ class SyncNpkToDeliveryOrderService
             $anchor = $npk->purchaseOrderIssued()->firstOrFail();
 
             // Find existing DO or create new
-            $dor = DeliveryOrderReceipt::where('monitoring_npk_id', $npk->id)->first() ?? new DeliveryOrderReceipt();
+            $dor = DeliveryOrderReceipt::where('monitoring_npk_id', $npk->id)->first() ?? new DeliveryOrderReceipt;
 
             $tgl103 = $npk->getAttribute('purchase_order_103_date');
 
@@ -52,8 +50,8 @@ class SyncNpkToDeliveryOrderService
                 $po = PurchaseOrderIssued::where('purchase_order_no', $anchor->purchase_order_no)
                     ->where('item_no', $d->getAttribute('item_no'))
                     ->first();
-                
-                if (!$po) {
+
+                if (! $po) {
                     continue;
                 }
 
@@ -81,7 +79,7 @@ class SyncNpkToDeliveryOrderService
                 ])->save();
             }
 
-            if (!empty($expectedItemNos)) {
+            if (! empty($expectedItemNos)) {
                 DeliveryOrderReceiptDetail::where('delivery_order_receipt_id', $dor->getAttribute('id'))
                     ->whereNotIn('item_no', $expectedItemNos)
                     ->delete();

@@ -61,6 +61,16 @@ class DeliveryOrderReceiptDetail extends Model
         return $this->belongsTo(LocationReceiving::class, 'location_id');
     }
 
+    public function materialIssueDetails()
+    {
+        return $this->hasMany(MaterialIssueDetail::class);
+    }
+
+    public function getIssuedQuantityAttribute()
+    {
+        return $this->materialIssueDetails()->sum('diserahkan');
+    }
+
     protected static function booted()
     {
         static::saving(function ($detail) {

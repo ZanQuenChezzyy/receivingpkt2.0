@@ -31,14 +31,14 @@ class Transmittal extends Model
         static::deleting(function ($transmittal) {
             // Dapatkan ID DO yang terkait dengan transmittal ini
             $doIds = $transmittal->transmittalItems()->pluck('delivery_order_receipt_id');
-            
+
             if ($doIds->isNotEmpty()) {
                 // Hapus log QC history terkait yang memiliki referensi transmittal_no ini
-                \App\Models\QcHistory::whereIn('delivery_order_receipt_id', $doIds)
+                QcHistory::whereIn('delivery_order_receipt_id', $doIds)
                     ->where('notes', 'LIKE', "%No: {$transmittal->transmittal_no}%")
                     ->delete();
             }
-            
+
             // Hapus juga transmittal items jika belum dicascade
             $transmittal->transmittalItems()->delete();
         });

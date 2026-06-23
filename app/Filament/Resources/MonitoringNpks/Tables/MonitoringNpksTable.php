@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\MonitoringNpks\Tables;
 
+use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -20,57 +22,55 @@ class MonitoringNpksTable
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                
+
                 TextColumn::make('delivery_oder_number')
                     ->label('Nomor DO')
                     ->searchable()
                     ->sortable(),
 
-                \Filament\Tables\Columns\IconColumn::make('sample_receivied_date')
+                IconColumn::make('sample_receivied_date')
                     ->label('Sample')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('delivery_oder_delivery_date')
+                IconColumn::make('delivery_oder_delivery_date')
                     ->label('DO Dikirim')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('received_date')
+                IconColumn::make('received_date')
                     ->label('Penerimaan')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('purchase_order_103_date')
+                IconColumn::make('purchase_order_103_date')
                     ->label('103')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('laprima_date')
+                IconColumn::make('laprima_date')
                     ->label('LAPRIMA')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('coa_date')
+                IconColumn::make('coa_date')
                     ->label('COA')
                     ->icon(fn ($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                     ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->tooltip(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
+                    ->tooltip(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y') : 'Belum Ada'),
 
-                \Filament\Tables\Columns\IconColumn::make('purchase_order_status')
+                IconColumn::make('purchase_order_status')
                     ->label('Status PO')
-                    ->icon(fn ($record) => 
-                        ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) || 
+                    ->icon(fn ($record) => ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) ||
                         ($record->purchase_order_status === 'B' && filled($record->purchase_order_status_b_date))
                         ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle'
                     )
-                    ->color(fn ($record) => 
-                        ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) || 
+                    ->color(fn ($record) => ($record->purchase_order_status === 'A' && is_array($record->purchase_order_status_a_files) && count($record->purchase_order_status_a_files) > 0) ||
                         ($record->purchase_order_status === 'B' && filled($record->purchase_order_status_b_date))
                         ? 'success' : 'gray'
                     )
