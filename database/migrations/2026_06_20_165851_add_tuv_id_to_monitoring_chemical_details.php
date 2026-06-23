@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('monitoring_chemical_details', function (Blueprint $table) {
-            $table->foreignId('chemical_qc_tuv_id')->nullable()->constrained('chemical_qc_tuvs')->nullOnDelete();
+            $table->unsignedBigInteger('chemical_qc_tuv_id')->nullable();
         });
 
         // Migrate data
@@ -21,8 +21,13 @@ return new class extends Migration
                 ->update(['chemical_qc_tuv_id' => $tuv->chemical_qc_tuv_id]);
         }
 
-        // Drop monitoring_chemical_tuvs
+        // Drop monitoring_chemical_tuvs (this also drops the old duplicate foreign key name)
         Schema::dropIfExists('monitoring_chemical_tuvs');
+
+        // Add foreign key constraint
+        Schema::table('monitoring_chemical_details', function (Blueprint $table) {
+            $table->foreign('chemical_qc_tuv_id')->references('id')->on('chemical_qc_tuvs')->nullOnDelete();
+        });
     }
 
     public function down(): void
