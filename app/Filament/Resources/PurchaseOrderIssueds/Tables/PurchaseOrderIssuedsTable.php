@@ -122,15 +122,14 @@ class PurchaseOrderIssuedsTable
                     ->limit(15),
 
                 TextColumn::make('date_create')
-                    ->label('Tanggal PO')
-                    ->date('d M Y')
-                    ->placeholder('None')
-                    ->sortable(),
+                    ->label('Tanggal Rilis PO')
+                    ->date('d F Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('delivery_date_po')
-                    ->label('Tgl Kirim')
-                    ->date('d M Y')
-                    ->placeholder('None')
+                    ->label('Tgl Kirim PO')
+                    ->date('d F Y')
                     ->sortable(),
 
                 TextColumn::make('po_status')

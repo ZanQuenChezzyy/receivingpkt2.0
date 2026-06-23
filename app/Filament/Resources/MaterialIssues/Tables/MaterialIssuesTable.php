@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MaterialIssues\Tables;
 
+use App\Models\MaterialIssue;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -16,6 +17,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class MaterialIssuesTable
 {
@@ -60,7 +62,7 @@ class MaterialIssuesTable
                         ->label('Stage Saat Diambil')
                         ->badge()
                         ->color('info')
-                        ->formatStateUsing(fn($state) => $state ?: 'Default')
+                        ->formatStateUsing(fn ($state) => $state ?: 'Default')
                         ->placeholder('Default'),
 
                     TextColumn::make('departemen')
@@ -107,7 +109,7 @@ class MaterialIssuesTable
                         ->label('Cetak')
                         ->icon('heroicon-o-printer')
                         ->color('success')
-                        ->url(fn(\App\Models\MaterialIssue $record): string => route('filament.admin.resources.material-issues.print', $record))
+                        ->url(fn (MaterialIssue $record): string => route('filament.admin.resources.material-issues.print', $record))
                         ->openUrlInNewTab(),
                     EditAction::make()
                         ->color('info')
@@ -128,8 +130,9 @@ class MaterialIssuesTable
                         ->label('Cetak MIR Terpilih')
                         ->icon('heroicon-o-printer')
                         ->color('success')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        ->action(function (Collection $records) {
                             $ids = $records->pluck('id')->implode(',');
+
                             return redirect()->route('filament.admin.resources.material-issues.print_bulk', ['ids' => $ids]);
                         }),
                     DeleteBulkAction::make(),

@@ -12,6 +12,7 @@ class GrsRdtvItem extends Model
         'document_code',
         'file_path',
         'status',
+        'reason',
     ];
 
     public function grsRdtv()

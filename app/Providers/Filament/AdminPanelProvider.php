@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->defaultThemeMode(ThemeMode::System)
             ->colors([
-                'danger' => Color::Rose,
+                'danger' => Color::Red,
                 'gray' => Color::Gray,
                 'info' => Color::Cyan,
                 'primary' => Color::Blue,
@@ -68,7 +68,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->when(
                 $themePlugin,
-                fn (Panel $panel) => $panel->plugins([$themePlugin])
+                fn(Panel $panel) => $panel->plugins([$themePlugin])
             )
             // FOOTER PLUGIN
             ->plugins([
@@ -77,7 +77,7 @@ class AdminPanelProvider extends PanelProvider
                     ->withSentence('LaravelChezzy. All rights reserved.'),
                 AuthDesignerPlugin::make()
                     ->defaults(
-                        fn ($config) => $config
+                        fn($config) => $config
                             ->media(asset('images/auth/background-auth.png'))
                             ->mediaPosition(MediaPosition::Left)
                             ->blur(0)

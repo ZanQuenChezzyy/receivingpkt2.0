@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MonitoringNpkDetails\Pages;
 use App\Filament\Resources\MonitoringNpkDetails\MonitoringNpkDetailResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
+use Filament\Support\Icons\Heroicon;
 
 class ManageMonitoringNpkDetails extends ManageRecords
 {
@@ -13,7 +14,9 @@ class ManageMonitoringNpkDetails extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Detail NPK')
+                ->icon(Heroicon::PlusCircle),
         ];
     }
 }

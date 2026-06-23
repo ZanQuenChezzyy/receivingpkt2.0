@@ -48,7 +48,13 @@ new class extends Component {
         $searchTerms = $matches[0];
 
         // Mulai Query Dasar
-        $query = DeliveryOrderReceipt::with(['deliveryOrderReceiptDetails.purchaseOrderIssued', 'qcHistories', 'transmittals']);
+        $query = DeliveryOrderReceipt::with([
+            'deliveryOrderReceiptDetails.purchaseOrderIssued', 
+            'deliveryOrderReceiptDetails.materialIssueDetails.materialIssue',
+            'qcHistories', 
+            'transmittals',
+            'grsRdtvItems.grsRdtv'
+        ]);
 
         // 2. Filter dinamis berdasarkan pesan user
         // Jika ada term pencarian, prioritaskan mencari data spesifik tersebut
@@ -80,10 +86,17 @@ new class extends Component {
 
         $contextData = $recentReceipts->map(function ($receipt) {
             $details = $receipt->deliveryOrderReceiptDetails->map(function ($detail) {
-                // PERBAIKAN: Sesuaikan pemanggilan property
                 $poNumber = $detail->purchaseOrderIssued ? $detail->purchaseOrderIssued->purchase_order_no : 'Tidak Ada PO';
+                
+                $mirInfo = "";
+                if ($detail->materialIssueDetails->isNotEmpty()) {
+                    $mirs = $detail->materialIssueDetails->map(function ($mid) {
+                        return "MIR " . ($mid->materialIssue->mir_number ?? 'Draft') . " (Qty Diambil: " . (float)$mid->diserahkan . ", Oleh: " . ($mid->materialIssue->diminta_oleh ?? 'Tidak diketahui') . ", Tgl: " . ($mid->materialIssue->tanggal ? \Carbon\Carbon::parse($mid->materialIssue->tanggal)->isoFormat('D MMM YYYY') : '-') . ")";
+                    })->implode(", ");
+                    $mirInfo = " | Riwayat Pengambilan: {$mirs}";
+                }
 
-                return "- Item: {$detail->description} ({$detail->material_code}) | Qty: {$detail->quantity} | PO: {$poNumber}";
+                return "- Item: {$detail->description} ({$detail->material_code}) | Qty: " . (float)$detail->quantity . " {$detail->uoi} | PO: {$poNumber}{$mirInfo}";
             })->implode("\n");
 
             // Info Transmittal (Posisi Dokumen)
@@ -101,7 +114,30 @@ new class extends Component {
                 $qcNotes = "- Belum ada riwayat masalah QC.";
             }
 
-            return "DO No: {$receipt->delivery_oder_no} | Status Utama: {$receipt->status} | Tanggal Terima: {$receipt->received_date->isoFormat('D MMMM YYYY')}
+            // Info Pending/Delay
+            $pendingInfo = "";
+            if ($receipt->status === 'Pending') {
+                $pendingInfo = "\nKendala Saat Ini (Pending): " . ($receipt->delay_reason ?? 'Tidak ada alasan') . " | Catatan: " . ($receipt->delay_notes ?? '-');
+            } elseif ($receipt->delay_reason) {
+                $pendingInfo = "\nRiwayat Kendala Sebelumnya (Sudah Resolusi): " . $receipt->delay_reason;
+            }
+
+            // Info GRS dan RDTV dari tabel GRSRDTV
+            $grsRdtvInfo = "";
+            if ($receipt->grsRdtvItems->isNotEmpty()) {
+                $grsRdtvList = $receipt->grsRdtvItems->map(function ($item) {
+                    $cat = $item->grsRdtv->category ?? 'Unknown';
+                    $date = $item->grsRdtv->transaction_date ? \Carbon\Carbon::parse($item->grsRdtv->transaction_date)->isoFormat('D MMMM YYYY') : '-';
+                    $reason = $item->reason ? " | Alasan: {$item->reason}" : "";
+                    return "- Kategori: {$cat} | Status: {$item->status}{$reason} | Tanggal: {$date}";
+                })->implode("\n");
+                $grsRdtvInfo = "Status GRS/RDTV:\n{$grsRdtvList}";
+            } else {
+                $grsRdtvInfo = "Status GRS/RDTV: Belum ada riwayat GRS atau RDTV.";
+            }
+
+            return "DO No: {$receipt->delivery_oder_no} | Status Utama: {$receipt->status} {$pendingInfo} | Tanggal Terima: {$receipt->received_date->isoFormat('D MMMM YYYY')}
+{$grsRdtvInfo}
 Posisi/Status Dokumen (Transmittal): {$transmittalInfo}
 Histori QC & Masalah:
 {$qcNotes}
@@ -110,7 +146,7 @@ Detail Barang:
         })->implode("\n\n-------------------\n\n");
 
         // 4. Susun Prompt untuk Gemini
-        $systemPrompt = "Kamu adalah Asisten Logistik cerdas untuk aplikasi Receiving 2.0. Tugasmu adalah menjawab pertanyaan terkait status penerimaan barang, posisi dokumen, dan masalah QC berdasarkan data database berikut.
+        $systemPrompt = "Kamu adalah Asisten Logistik cerdas untuk aplikasi Receiving 2.0. Tugasmu adalah menjawab pertanyaan terkait status penerimaan barang, posisi dokumen, masalah QC, dan riwayat pengambilan barang (MIR) berdasarkan data database berikut.
 
                         Data Penerimaan Terkait:
                         " . ($contextData ?: 'Tidak ditemukan data penerimaan yang cocok dengan pencarian.') . "
@@ -118,11 +154,12 @@ Detail Barang:
                         Instruksi Menjawab:
                         1. Jawablah dengan sangat rapi, terstruktur, ramah, dan ringkas. Gunakan Markdown (seperti **bold**, *italic*, atau list bullet) agar informasi mudah dibaca dan poin-poinnya jelas.
                         2. Jika user bertanya tentang status dokumen/posisi dokumen, periksa bagian 'Posisi/Status Dokumen (Transmittal)' dan beritahu mereka ke mana dokumen tersebut terakhir dikirim atau dikembalikan.
-                        3. Jika user bertanya mengenai masalah QC, revisi, atau penolakan, periksa bagian 'Histori QC & Masalah' lalu jelaskan alasan/catatannya dengan format bullet atau terstruktur.
-                        4. Jika data ada, sampaikan status dan detail materialnya secara singkat dan rapi.
-                        5. Pastikan semua format tanggal yang kamu sebutkan menggunakan format bahasa Indonesia yang rapi, contoh: '17 Juni 2026'.
-                        6. Jika user menanyakan proses lanjutan yang datanya TIDAK ADA dalam teks di atas, berikan jawaban sopan: 'Mohon maaf, untuk proses selanjutnya saat ini masih dalam tahap administrasi. Silakan lakukan pengecekan kembali secara berkala.'
-                        7. Jika nomor PO/DO sama sekali tidak ditemukan, katakan: 'Maaf, saya tidak dapat menemukan data tersebut di riwayat penerimaan terbaru. Mohon pastikan nomor PO atau DO sudah benar.'";
+                        3. Jika user bertanya mengenai 'kenapa status pending', periksa bagian 'Status Pending/Kendala' serta 'Histori QC & Masalah'. Jelaskan alasan dan catatannya secara detail.
+                        4. Jika user bertanya tentang pengambilan barang atau MIR (diambil oleh siapa, dsb), periksa bagian 'Riwayat Pengambilan' di Detail Barang.
+                        5. Jika user bertanya apakah dokumen sudah GRS atau alasan RDTV, periksa bagian 'Status GRS/RDTV' yang ditarik dari tabel GRSRDTV. Beritahu statusnya (contoh: Unmatched/Matched) beserta tanggalnya sesuai dengan kategori (GRS atau RDTV).
+                        6. Pastikan semua format tanggal yang kamu sebutkan menggunakan format bahasa Indonesia yang rapi, contoh: '17 Juni 2026'.
+                        7. Jika user menanyakan proses lanjutan yang datanya TIDAK ADA dalam teks di atas, berikan jawaban sopan: 'Mohon maaf, untuk proses selanjutnya saat ini masih dalam tahap administrasi.'
+                        8. Jika nomor PO/DO sama sekali tidak ditemukan, katakan: 'Maaf, saya tidak dapat menemukan data tersebut di riwayat penerimaan terbaru. Mohon pastikan nomor PO atau DO sudah benar.'";
 
         $geminiChatHistory = [];
         foreach ($this->chats as $chat) {
@@ -179,22 +216,24 @@ Detail Barang:
     <div class="relative group">
         <!-- Efek Glow Oranye di belakang tombol -->
         <div x-show="!$wire.isOpen"
-            class="absolute -inset-1 bg-gradient-to-r from-[#F47920] to-[#0A4F86] rounded-full blur-md opacity-40 group-hover:opacity-70 transition duration-500">
+            class="absolute -inset-2 bg-[#F47920] rounded-full blur-xl opacity-20 group-hover:opacity-40 transition duration-500 animate-pulse">
         </div>
         <button wire:click="toggleChat"
-            class="relative w-14 h-14 bg-gradient-to-br from-[#0A4F86] to-[#1261a0] hover:from-[#0d5c9c] hover:to-[#0A4F86] rounded-full shadow-lg shadow-[#0A4F86]/30 flex items-center justify-center text-white transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 border border-[#1a7bc7]/30">
+            class="relative w-14 h-14 bg-white dark:bg-[#031525] hover:bg-slate-50 dark:hover:bg-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(244,121,32,0.2)] flex items-center justify-center text-[#F47920] transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 border border-slate-200/80 dark:border-white/10 group-hover:border-[#F47920]/50">
 
             <!-- Icon Chat (Tutup) -->
-            <svg x-show="!$wire.isOpen" class="w-6 h-6 transition-transform duration-300" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5">
-                </path>
+            <svg x-show="!$wire.isOpen" class="w-7 h-7 transition-transform duration-300 group-hover:animate-bounce" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8V4H8"></path>
+                <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+                <path d="M2 14h2"></path>
+                <path d="M20 14h2"></path>
+                <path d="M15 13v2"></path>
+                <path d="M9 13v2"></path>
             </svg>
 
             <!-- Icon Close (Buka) -->
             <svg x-show="$wire.isOpen" style="display: none;"
-                class="w-6 h-6 transition-transform duration-300 rotate-90" fill="none" viewBox="0 0 24 24"
+                class="w-6 h-6 transition-transform duration-300 rotate-90 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -208,36 +247,34 @@ Detail Barang:
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-        class="absolute bottom-20 right-0 w-[340px] sm:w-[420px] bg-white/95 backdrop-blur-2xl rounded-3xl shadow-[0_30px_80px_-15px_rgba(10,79,134,0.3)] border border-white/50 overflow-hidden flex flex-col h-[36rem] ring-1 ring-slate-900/5">
+        class="absolute bottom-20 right-0 w-[340px] sm:w-[420px] bg-white/80 dark:bg-[#031525]/80 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_40px_rgb(0,0,0,0.3)] border border-white/60 dark:border-white/10 overflow-hidden flex flex-col h-[38rem]">
 
         <!-- Header -->
-        <div
-            class="bg-gradient-to-r from-[#0A4F86] via-[#1261a0] to-[#0A4F86] bg-[length:200%_auto] animate-gradient px-6 py-4 flex items-center justify-between border-b border-[#0A4F86]/80 shadow-[0_4px_20px_-5px_rgba(10,79,134,0.4)] relative z-20 overflow-hidden">
-            <!-- Glass Overlay -->
-            <div class="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-
-            <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white/10 blur-3xl"></div>
-
+        <div class="px-6 py-5 flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 relative z-20 overflow-hidden bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
             <div class="flex items-center gap-3.5 relative z-10">
                 <div class="relative group">
                     <div
-                        class="w-11 h-11 bg-gradient-to-tr from-[#F47920] to-[#f89b53] rounded-2xl flex items-center justify-center shadow-lg border border-[#F47920]/40 group-hover:shadow-[#F47920]/40 transition-all duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        class="w-11 h-11 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-slate-200/80 dark:border-white/5 group-hover:border-[#F47920]/50 transition-all duration-300">
+                        <svg class="w-6 h-6 text-[#F47920]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 8V4H8"></path>
+                            <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+                            <path d="M2 14h2"></path>
+                            <path d="M20 14h2"></path>
+                            <path d="M15 13v2"></path>
+                            <path d="M9 13v2"></path>
                         </svg>
                     </div>
                     <span
-                        class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-[2.5px] border-[#0A4F86] rounded-full shadow-sm"></span>
+                        class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#031525] rounded-full shadow-sm"></span>
                 </div>
                 <div>
-                    <h3 class="text-[15px] font-extrabold text-white tracking-wide leading-tight">Receiving AI</h3>
-                    <p class="text-[11px] text-blue-100/90 font-medium tracking-wide mt-0.5">Asisten Gudang Cerdas</p>
+                    <h3 class="text-[15px] font-bold text-slate-800 dark:text-white tracking-tight">AI Support</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-0.5">Portal Logistik Terpadu</p>
                 </div>
             </div>
 
             <button wire:click="toggleChat"
-                class="text-blue-100 hover:text-white transition-all duration-300 relative z-10 bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all duration-300 relative z-10 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 p-2 rounded-xl">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path>
                 </svg>
@@ -245,14 +282,12 @@ Detail Barang:
         </div>
 
         <!-- Ruang Obrolan -->
-        <div class="flex-1 p-5 overflow-y-auto bg-slate-50/60 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-[#0A4F86]/20 scrollbar-track-transparent relative"
-            id="chat-container">
+        <div class="flex-1 p-5 overflow-y-auto bg-slate-50/50 dark:bg-transparent flex flex-col gap-6 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent relative" id="chat-container">
 
             <div class="flex justify-center">
-                <span
-                    class="text-[10px] font-bold tracking-widest text-slate-400 uppercase bg-slate-200/50 px-4 py-1.5 rounded-full shadow-sm">
-                    Hari ini
-                </span>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/5 shadow-sm backdrop-blur-md">
+                    <span class="text-[9px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Hari ini</span>
+                </div>
             </div>
 
             @foreach($chats as $chat)
@@ -260,32 +295,30 @@ Detail Barang:
                         <!-- Bubble AI -->
                         <div class="flex items-start gap-3 max-w-[92%] group">
                             <div class="relative flex-shrink-0 mt-1">
-                                <div
-                                    class="w-9 h-9 rounded-full bg-gradient-to-tr from-[#F47920] to-[#f89b53] flex items-center justify-center shadow-md border border-[#F47920]/30 relative z-10">
-                                    <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-200/80 dark:border-white/10 relative z-10">
+                                    <svg class="w-4 h-4 text-[#F47920]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 8V4H8"></path>
+                                        <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+                                        <path d="M2 14h2"></path>
+                                        <path d="M20 14h2"></path>
+                                        <path d="M15 13v2"></path>
+                                        <path d="M9 13v2"></path>
                                     </svg>
                                 </div>
-                                <div class="absolute inset-0 bg-[#F47920] rounded-full animate-ping opacity-20 scale-110"></div>
                             </div>
                             <div
-                                class="bg-white px-5 py-4 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100/80 text-[13.5px] text-slate-700 leading-relaxed ai-markdown-content relative overflow-hidden">
+                                class="bg-white dark:bg-slate-800/80 px-5 py-4 rounded-[1.5rem] rounded-tl-sm shadow-sm border border-slate-200/60 dark:border-white/5 text-[13.5px] text-slate-700 dark:text-slate-300 leading-relaxed ai-markdown-content transition-shadow duration-300 backdrop-blur-md">
                                 {!! str($chat['content'])->markdown([
-                        'html_input' => 'escape',
-                        'allow_unsafe_links' => false,
-                    ]) !!}
+                                    'html_input' => 'escape',
+                                    'allow_unsafe_links' => false,
+                                ]) !!}
                             </div>
                         </div>
                 @else
                     <!-- Bubble User -->
                     <div class="flex items-end justify-end w-full">
                         <div
-                            class="bg-gradient-to-br from-[#0A4F86] to-[#0d5c9c] text-white px-5 py-3.5 rounded-2xl rounded-tr-sm shadow-[0_8px_20px_-6px_rgba(10,79,134,0.35)] border border-[#1261a0]/50 text-[13.5px] leading-relaxed max-w-[85%] relative overflow-hidden">
-                            <!-- Efek Kilap Kaca -->
-                            <div
-                                class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent opacity-60 pointer-events-none">
-                            </div>
+                            class="bg-gradient-to-r from-[#F47920] to-[#BE5A27] text-white px-5 py-3.5 rounded-[1.5rem] rounded-tr-sm shadow-md shadow-[#F47920]/20 text-[13.5px] leading-relaxed max-w-[85%] relative overflow-hidden transform hover:-translate-y-0.5 transition-transform duration-300">
                             <span class="relative z-10 block">{{ $chat['content'] }}</span>
                         </div>
                     </div>
@@ -295,18 +328,13 @@ Detail Barang:
             <!-- Loading Indicator -->
             @if($isTyping)
                 <div class="flex items-start gap-3 max-w-[85%]">
-                    <div
-                        class="w-9 h-9 rounded-full bg-slate-200/80 flex-shrink-0 flex items-center justify-center mt-1 animate-pulse border border-slate-300/50">
-                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center mt-1 animate-pulse border border-slate-300/50 dark:border-white/5">
+                        <span class="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full"></span>
                     </div>
-                    <div
-                        class="bg-white px-5 py-4 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center gap-1.5">
-                        <span
-                            class="w-2 h-2 bg-gradient-to-r from-[#0A4F86] to-[#F47920] rounded-full animate-bounce"></span>
-                        <span class="w-2 h-2 bg-gradient-to-r from-[#0A4F86] to-[#F47920] rounded-full animate-bounce"
-                            style="animation-delay: 0.15s"></span>
-                        <span class="w-2 h-2 bg-gradient-to-r from-[#0A4F86] to-[#F47920] rounded-full animate-bounce"
-                            style="animation-delay: 0.3s"></span>
+                    <div class="bg-white dark:bg-slate-800/80 px-5 py-4 rounded-[1.5rem] rounded-tl-sm shadow-sm border border-slate-200/60 dark:border-white/5 flex items-center gap-1.5 backdrop-blur-md">
+                        <span class="w-1.5 h-1.5 bg-[#F47920] rounded-full animate-bounce"></span>
+                        <span class="w-1.5 h-1.5 bg-[#F47920] rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+                        <span class="w-1.5 h-1.5 bg-[#F47920] rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
                     </div>
                 </div>
             @endif
@@ -314,34 +342,28 @@ Detail Barang:
 
         <!-- Input Area -->
         <form wire:submit="sendMessage"
-            class="p-5 bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-[0_-15px_30px_-15px_rgba(0,0,0,0.04)] relative z-20 rounded-b-3xl">
-            <div
-                class="relative flex items-center bg-slate-50 border border-slate-200 rounded-full focus-within:ring-4 focus-within:ring-[#0A4F86]/10 focus-within:border-[#0A4F86]/40 focus-within:bg-white transition-all duration-300 shadow-inner group">
+            class="p-5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/5 relative z-20 rounded-b-[2.5rem]">
+            <div class="relative flex items-center bg-white/80 dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-full focus-within:ring-2 focus-within:ring-[#F47920]/50 focus-within:border-[#F47920] transition-all duration-300 shadow-sm group">
 
-                <!-- Disable input saat AI sedang mengetik -->
-                <input wire:model="message" type="text" placeholder="Tanya PO, DO, atau Material..."
-                    class="w-full pl-6 pr-14 py-4 bg-transparent text-[13.5px] text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium"
+                <input wire:model="message" type="text" placeholder="Tanya DO, PO, atau MIR..."
+                    class="w-full pl-6 pr-14 py-3.5 bg-transparent text-[13.5px] text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium"
                     required autocomplete="off" @disabled($isTyping)>
 
                 <button type="submit"
-                    class="absolute right-2 w-11 h-11 bg-gradient-to-br from-[#0A4F86] to-[#1261a0] rounded-full flex items-center justify-center text-white hover:from-[#F47920] hover:to-[#f89b53] shadow-md hover:shadow-[#F47920]/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
+                    class="absolute right-1.5 w-10 h-10 bg-[#F47920] hover:bg-[#E06714] rounded-full flex items-center justify-center text-white shadow-md hover:shadow-[#F47920]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
                     @disabled($isTyping)>
-                    <svg class="w-5 h-5 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    <svg class="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"></path>
+                            d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"></path>
                     </svg>
                 </button>
             </div>
 
             <!-- Footer Branding -->
-            <div class="text-center mt-3.5 flex justify-center items-center gap-2">
-                <div
-                    class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_5px_rgba(52,211,153,0.8)]">
-                </div>
-                <span class="text-[10px] font-semibold text-slate-400 tracking-wide">POWERED BY <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-[#0A4F86] to-[#F47920] font-black tracking-wider">MOKONDO
-                        AI</span></span>
+            <div class="text-center mt-3.5 flex justify-center items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></div>
+                <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase">Powered by <span class="text-[#F47920]">Mokondo AI</span></span>
             </div>
         </form>
     </div>
@@ -364,47 +386,8 @@ Detail Barang:
     @endscript
 
     <style>
-        /* Animasi Gradient Header */
-        @keyframes gradient {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        .animate-gradient {
-            animation: gradient 4s ease infinite;
-        }
-
-        /* Custom minimal scrollbar */
-        #chat-container::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        #chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #chat-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 20px;
-        }
-
-        #chat-container:hover::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
-        }
-
-        /* Styling Markdown AI */
         .ai-markdown-content {
             font-size: 13.5px;
-            color: #334155;
             line-height: 1.6;
         }
 
@@ -417,8 +400,13 @@ Detail Barang:
         }
 
         .ai-markdown-content strong {
-            color: #0A4F86;
-            font-weight: 800;
+            color: #F47920;
+            font-weight: 700;
+        }
+        
+        /* Dark mode specific for markdown strong */
+        .dark .ai-markdown-content strong {
+            color: #F89B53;
         }
 
         .ai-markdown-content ul {
@@ -447,6 +435,10 @@ Detail Barang:
         .ai-markdown-content hr {
             border-top: 1px dashed #e2e8f0;
             margin: 1rem 0;
+        }
+        
+        .dark .ai-markdown-content hr {
+            border-top-color: rgba(255,255,255,0.1);
         }
     </style>
 </div>

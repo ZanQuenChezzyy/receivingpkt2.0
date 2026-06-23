@@ -28,6 +28,10 @@ class MaterialIssuePrintController extends Controller
 
     protected function generatePdf($records)
     {
+        if (!$records instanceof \Illuminate\Database\Eloquent\Collection) {
+            $records = \Illuminate\Database\Eloquent\Collection::make($records);
+        }
+        
         $records->load(['materialIssueDetails.deliveryOrderReceiptDetail', 'purchaseOrderIssued', 'createdBy']);
         
         $pdf = Pdf::loadView('pdf.mir', [

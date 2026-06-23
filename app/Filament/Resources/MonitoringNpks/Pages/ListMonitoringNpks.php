@@ -7,6 +7,7 @@ use App\Models\MonitoringNpk;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Support\Icons\Heroicon;
 
 class ListMonitoringNpks extends ListRecords
 {
@@ -15,7 +16,9 @@ class ListMonitoringNpks extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Monitoring NPK')
+                ->icon(Heroicon::PlusCircle),
         ];
     }
 

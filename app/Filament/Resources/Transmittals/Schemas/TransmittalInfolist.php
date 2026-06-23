@@ -45,8 +45,8 @@ class TransmittalInfolist
                                     ->icon('heroicon-m-user-circle'),
 
                                 TextEntry::make('created_at')
-                                    ->label('Tanggal Pembuatan')
-                                    ->date('l, d F Y')
+                                    ->label('Dibuat Pada')
+                                    ->date('d F Y')
                                     ->icon('heroicon-m-calendar-days'),
 
                                 TextEntry::make('total_documents')

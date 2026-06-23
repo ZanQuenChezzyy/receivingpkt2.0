@@ -249,7 +249,7 @@
                                         <select wire:model.live="details.{{ $index }}.delivery_order_receipt_detail_id" class="w-full appearance-none bg-white/50 dark:bg-black/20 backdrop-blur-md border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl px-5 py-4 focus:ring-2 focus:ring-[#F47920]/50 focus:border-[#F47920] focus:bg-white dark:focus:bg-slate-900/60 transition-all font-semibold shadow-sm" required>
                                             <option value="">-- Pilih dari PO --</option>
                                             @foreach($available_po_items as $item)
-                                                <option value="{{ $item->id }}">Item {{ $item->item_no }} &middot; {{ $item->material_code }}</option>
+                                                <option value="{{ is_array($item) ? $item['id'] : $item->id }}">Item {{ is_array($item) ? $item['item_no'] : $item->item_no }} &middot; {{ is_array($item) ? $item['material_code'] : $item->material_code }}</option>
                                             @endforeach
                                         </select>
                                         <div class="absolute inset-y-0 right-0 flex items-center px-5 pointer-events-none text-slate-400">

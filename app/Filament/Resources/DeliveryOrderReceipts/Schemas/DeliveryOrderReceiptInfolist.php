@@ -49,7 +49,7 @@ class DeliveryOrderReceiptInfolist
                                 TextEntry::make('received_date')
                                     ->label('Tanggal Kedatangan')
                                     ->icon('heroicon-m-calendar-days')
-                                    ->date('l, d F Y'),
+                                    ->date('d F Y'),
 
                                 TextEntry::make('source_type')
                                     ->label('Tipe Material')
@@ -304,7 +304,37 @@ class DeliveryOrderReceiptInfolist
                                 ->schema([
                                     TextEntry::make('status')
                                         ->badge()
-                                        ->color('success'),
+                                        ->color(fn (string $state): string => match ($state) {
+                                            'Pending' => 'warning',
+                                            'Diterima' => 'success',
+                                            default => 'primary',
+                                        }),
+
+                                    TextEntry::make('delay_reason')
+                                        ->label(fn ($record) => $record->status === 'Pending' ? 'Alasan Pending' : 'Riwayat Pending (Alasan)')
+                                        ->icon('heroicon-m-exclamation-triangle')
+                                        ->color(fn ($record) => $record->status === 'Pending' ? 'danger' : 'gray')
+                                        ->weight(FontWeight::Bold)
+                                        ->visible(fn ($record) => !empty($record->delay_reason)),
+
+                                    TextEntry::make('pending_date')
+                                        ->label('Tanggal Mulai Pending')
+                                        ->dateTime('d M Y, H:i')
+                                        ->color('gray')
+                                        ->icon('heroicon-m-calendar')
+                                        ->visible(fn ($record) => !empty($record->pending_date)),
+
+                                    TextEntry::make('pending_resolved_date')
+                                        ->label('Tanggal Selesai Pending')
+                                        ->dateTime('d M Y, H:i')
+                                        ->color('success')
+                                        ->icon('heroicon-m-check-circle')
+                                        ->visible(fn ($record) => !empty($record->pending_resolved_date)),
+
+                                    TextEntry::make('delay_notes')
+                                        ->label('Catatan Pending')
+                                        ->color('gray')
+                                        ->visible(fn ($record) => !empty($record->delay_notes)),
 
                                     TextEntry::make('stage')
                                         ->label(function ($record) {
@@ -387,6 +417,38 @@ class DeliveryOrderReceiptInfolist
                                         ->color('gray'),
                                 ]),
                         ]),
+
+                    Section::make('Timeline & Riwayat Pemeriksaan')
+                        ->icon('heroicon-o-clock')
+                        ->schema([
+                            Grid::make(3)
+                                ->schema([
+                                    TextEntry::make('dikirim_ke_istek')
+                                        ->label('Dikirim ke ISTEK')
+                                        ->getStateUsing(fn ($record) => $record->qcHistories()->where('status', 'Kirim')->latest()->first()?->created_at)
+                                        ->dateTime('d F Y, H:i')
+                                        ->placeholder('Belum Dikirim')
+                                        ->icon('heroicon-m-paper-airplane')
+                                        ->color(fn ($state) => $state ? 'info' : 'gray'),
+
+                                    TextEntry::make('kembali_dari_istek')
+                                        ->label('Kembali dari ISTEK')
+                                        ->getStateUsing(fn ($record) => $record->qcHistories()->where('status', 'Kembali')->latest()->first()?->created_at)
+                                        ->dateTime('d F Y, H:i')
+                                        ->placeholder('Belum Kembali')
+                                        ->icon('heroicon-m-arrow-uturn-left')
+                                        ->color(fn ($state) => $state ? 'success' : 'gray'),
+
+                                    TextEntry::make('grs_rdtv_date')
+                                        ->label('Tanggal GRS / RDTV')
+                                        ->getStateUsing(fn ($record) => $record->grsRdtvItems()->latest()->first()?->grsRdtv?->transaction_date)
+                                        ->date('d F Y')
+                                        ->placeholder('Belum Diproses')
+                                        ->icon('heroicon-m-document-check')
+                                        ->color(fn ($state) => $state ? 'primary' : 'gray'),
+                                ]),
+                        ])
+                        ->collapsible(),
 
                     Section::make('Informasi Petugas')
                         ->icon('heroicon-o-users')

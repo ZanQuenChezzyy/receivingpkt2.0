@@ -22,7 +22,7 @@ class MaterialIssueInfolist
                         ->schema([
                             Grid::make(2)->schema([
                                 TextEntry::make('mir_number')->label('No. MIR')->weight(FontWeight::Bold)->color('primary')->copyable(),
-                                TextEntry::make('tanggal')->label('Tanggal')->date('d M Y'),
+                                TextEntry::make('tanggal')->label('Tanggal')->date('d F Y'),
                                 TextEntry::make('purchaseOrderIssued.purchase_order_no')->label('Nomor PO')->icon('heroicon-m-shopping-cart'),
                                 TextEntry::make('diminta_oleh')->label('Diminta Oleh'),
                                 TextEntry::make('diterima_oleh')->label('Diterima Oleh'),
@@ -55,7 +55,7 @@ class MaterialIssueInfolist
                                     ]),
                                 ]),
                         ]),
-                ]),
+                ])->columnSpanFull(),
             ]);
     }
 }

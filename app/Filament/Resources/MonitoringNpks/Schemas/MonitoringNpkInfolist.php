@@ -18,32 +18,32 @@ class MonitoringNpkInfolist
                 TextEntry::make('location.name')
                     ->label('Location'),
                 TextEntry::make('sample_receivied_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('stage')
                     ->placeholder('-'),
                 TextEntry::make('delivery_oder_delivery_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('purchase_order_103_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('received_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('purchase_order_status')
                     ->placeholder('-'),
                 TextEntry::make('purchase_order_status_a_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('purchase_order_status_b_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('laprima_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('coa_date')
-                    ->date()
+                    ->date('d F Y')
                     ->placeholder('-'),
                 TextEntry::make('doc_status'),
                 TextEntry::make('created_by')

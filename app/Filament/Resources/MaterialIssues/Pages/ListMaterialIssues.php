@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MaterialIssues\Pages;
 use App\Filament\Resources\MaterialIssues\MaterialIssueResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Icons\Heroicon;
 
 class ListMaterialIssues extends ListRecords
 {
@@ -13,7 +14,9 @@ class ListMaterialIssues extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Material Issue')
+                ->icon(Heroicon::PlusCircle),
         ];
     }
 }

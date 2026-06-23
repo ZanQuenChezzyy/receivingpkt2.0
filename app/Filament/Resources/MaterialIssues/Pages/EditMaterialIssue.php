@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\MaterialIssues\Pages;
 
 use App\Filament\Resources\MaterialIssues\MaterialIssueResource;
+use App\Models\MaterialIssue;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -13,11 +15,11 @@ class EditMaterialIssue extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('cetak_mir')
+            Action::make('cetak_mir')
                 ->label('Cetak MIR')
                 ->icon('heroicon-o-printer')
                 ->color('success')
-                ->url(fn (\App\Models\MaterialIssue $record): string => route('filament.admin.resources.material-issues.print', $record))
+                ->url(fn (MaterialIssue $record): string => route('filament.admin.resources.material-issues.print', $record))
                 ->openUrlInNewTab(),
             DeleteAction::make(),
         ];

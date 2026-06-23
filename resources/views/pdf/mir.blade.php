@@ -117,21 +117,40 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($record->materialIssueDetails as $detail)
+                    @php
+                        $groupedDetails = $record->materialIssueDetails->groupBy(function($detail) {
+                            return $detail->deliveryOrderReceiptDetail?->purchase_order_issued_id;
+                        })->map(function($group) {
+                            $first = $group->first();
+                            $locations = $group->map(fn($d) => $d->deliveryOrderReceiptDetail?->locationReceiving?->name)->filter()->unique()->implode(', ');
+                            
+                            return (object)[
+                                'description' => $first->deliveryOrderReceiptDetail?->description,
+                                'material_code' => $first->deliveryOrderReceiptDetail?->material_code,
+                                'location' => $locations ?: 'Belum Diatur',
+                                'diminta' => $group->sum('diminta'),
+                                'diserahkan' => $group->sum('diserahkan'),
+                                'boh' => $group->sum('boh'),
+                                'uoi' => $first->deliveryOrderReceiptDetail?->uoi,
+                            ];
+                        });
+                    @endphp
+
+                    @foreach($groupedDetails as $detail)
                     <tr>
-                        <td>{{ $detail->deliveryOrderReceiptDetail?->description }}</td>
-                        <td class="text-center">{{ $detail->deliveryOrderReceiptDetail?->material_code }}</td>
-                        <td class="text-center">{{ $detail->deliveryOrderReceiptDetail?->locationReceiving?->name }}</td>
+                        <td>{{ $detail->description }}</td>
+                        <td class="text-center">{{ $detail->material_code }}</td>
+                        <td class="text-center">{{ $detail->location }}</td>
                         <td class="text-center">{{ (float) $detail->diminta }}</td>
                         <td class="text-center">{{ (float) $detail->diserahkan }}</td>
                         <td class="text-center">{{ (float) $detail->boh }}</td>
-                        <td class="text-center">{{ $detail->deliveryOrderReceiptDetail?->uoi }}</td>
+                        <td class="text-center">{{ $detail->uoi }}</td>
                         <td class="text-center">{{ $record->kode_biaya }}</td>
                     </tr>
                     @endforeach
                     
                     {{-- Fill empty rows to make the table look complete like the physical form --}}
-                    @php $emptyRows = 6 - $record->materialIssueDetails->count(); @endphp
+                    @php $emptyRows = 6 - $groupedDetails->count(); @endphp
                     @for($i = 0; $i < ($emptyRows > 0 ? $emptyRows : 0); $i++)
                     <tr>
                         <td>&nbsp;</td>

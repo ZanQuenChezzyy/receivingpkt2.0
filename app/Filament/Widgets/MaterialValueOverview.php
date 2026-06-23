@@ -69,8 +69,14 @@ class MaterialValueOverview extends BaseWidget
                 ->whereDoesntHave('deliveryOrderReceipt.grsRdtvItems')
                 ->sum('delivery_order_receipt_details.total_amount_snapshot');
 
-            // 5. Hitung total berdasarkan masing-masing ABC Indicator dari GRS Bulan Ini
-            $abcIndicators = (clone $baseGrsQuery)
+            // 5. Hitung total berdasarkan masing-masing ABC Indicator dari Kedatangan Bulan Ini (Semua Barang Tiba)
+            $abcIndicators = DeliveryOrderReceiptDetail::query()
+                ->join('purchase_order_issueds', 'delivery_order_receipt_details.purchase_order_issued_id', '=', 'purchase_order_issueds.id')
+                ->where('purchase_order_issueds.mrp_type', $mrpType)
+                ->whereHas('deliveryOrderReceipt', function ($query) {
+                    $query->whereMonth('received_date', now()->month)
+                        ->whereYear('received_date', now()->year);
+                })
                 ->select('purchase_order_issueds.abc_indicator', DB::raw('SUM(delivery_order_receipt_details.total_amount_snapshot) as total'))
                 ->whereNotNull('purchase_order_issueds.abc_indicator')
                 ->groupBy('purchase_order_issueds.abc_indicator')

@@ -25,7 +25,7 @@ class MonitoringChemicalsTable
                     ->label('Penerima')
                     ->searchable(),
                 TextColumn::make('received_date')
-                    ->date()
+                    ->date('d F Y')
                     ->sortable(),
                 TextColumn::make('doc_status')
                     ->searchable(),

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LocationReceivings\Pages;
 use App\Filament\Resources\LocationReceivings\LocationReceivingResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
+use Filament\Support\Icons\Heroicon;
 
 class ManageLocationReceivings extends ManageRecords
 {
@@ -13,7 +14,9 @@ class ManageLocationReceivings extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Lokasi Receiving')
+                ->icon(Heroicon::PlusCircle),
         ];
     }
 }

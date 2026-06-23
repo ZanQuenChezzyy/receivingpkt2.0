@@ -72,9 +72,29 @@ class PublicMaterialIssueForm extends Component
             $poItem = PurchaseOrderIssued::find($id);
             if ($poItem) {
                 $allPoItemIds = PurchaseOrderIssued::where('purchase_order_no', $poItem->purchase_order_no)->pluck('id');
-                $this->available_po_items = DeliveryOrderReceiptDetail::with('locationReceiving')
+                $rawItems = DeliveryOrderReceiptDetail::with('locationReceiving')
                     ->whereIn('purchase_order_issued_id', $allPoItemIds)
                     ->get();
+                    
+                $this->available_po_items = $rawItems->groupBy('purchase_order_issued_id')->map(function ($group) {
+                    $first = $group->first();
+                    
+                    $combined_quantity = $group->sum('quantity');
+                    $combined_issued = $group->sum(function($item) { return $item->issued_quantity; });
+                    $combined_boh = $combined_quantity - $combined_issued;
+                    
+                    $locations = $group->map(fn($i) => $i->locationReceiving?->name)->filter()->unique()->implode(', ');
+                    
+                    return [
+                        'id' => $first->purchase_order_issued_id, // Store as PO issued ID
+                        'item_no' => $first->item_no,
+                        'material_code' => $first->material_code,
+                        'description' => $first->description,
+                        'uoi' => $first->uoi,
+                        'combined_boh' => $combined_boh,
+                        'combined_locations' => $locations ?: 'Belum Diatur',
+                    ];
+                })->values()->toArray();
             } else {
                 $this->available_po_items = [];
             }
@@ -98,16 +118,15 @@ class PublicMaterialIssueForm extends Component
             if ($field === 'delivery_order_receipt_detail_id') {
                 $detailId = $value;
                 if ($detailId) {
-                    $item = $this->available_po_items->firstWhere('id', $detailId);
+                    $item = collect($this->available_po_items)->firstWhere('id', (int)$detailId) 
+                         ?? collect($this->available_po_items)->firstWhere('id', (string)$detailId);
+                         
                     if ($item) {
-                        $this->details[$index]['stock_no'] = $item->material_code;
-                        $this->details[$index]['description'] = $item->description;
-                        $this->details[$index]['location'] = $item->locationReceiving?->name ?? 'Belum Diatur';
-                        $this->details[$index]['uoi'] = $item->uoi;
-                        
-                        $qtyReceived = (float) $item->quantity;
-                        $qtyIssued = (float) $item->issued_quantity;
-                        $this->details[$index]['boh'] = $qtyReceived - $qtyIssued;
+                        $this->details[$index]['stock_no'] = $item['material_code'];
+                        $this->details[$index]['description'] = $item['description'];
+                        $this->details[$index]['location'] = $item['combined_locations'];
+                        $this->details[$index]['uoi'] = $item['uoi'];
+                        $this->details[$index]['boh'] = $item['combined_boh'];
                     }
                 } else {
                     $this->details[$index]['stock_no'] = '';
@@ -219,13 +238,32 @@ class PublicMaterialIssueForm extends Component
             ]);
 
             foreach ($this->details as $detailData) {
-                MaterialIssueDetail::create([
-                    'material_issue_id' => $issue->id,
-                    'delivery_order_receipt_detail_id' => $detailData['delivery_order_receipt_detail_id'],
-                    'diminta' => $detailData['diminta'],
-                    'diserahkan' => $detailData['diserahkan'],
-                    'boh' => $detailData['boh'],
-                ]);
+                $poIssuedId = $detailData['delivery_order_receipt_detail_id']; // ini berisi purchase_order_issued_id sekarang
+                $diminta = (float) $detailData['diminta'];
+                
+                // Ambil semua DO receipts untuk PO item ini, prioritaskan yang BOH-nya lebih dari 0
+                $receipts = DeliveryOrderReceiptDetail::where('purchase_order_issued_id', $poIssuedId)
+                                ->orderBy('id', 'asc')
+                                ->get();
+                                
+                foreach ($receipts as $receipt) {
+                    if ($diminta <= 0) break;
+                    
+                    $receiptBoh = (float) $receipt->quantity - (float) $receipt->issued_quantity;
+                    if ($receiptBoh <= 0) continue;
+                    
+                    $take = min($receiptBoh, $diminta);
+                    
+                    MaterialIssueDetail::create([
+                        'material_issue_id' => $issue->id,
+                        'delivery_order_receipt_detail_id' => $receipt->id,
+                        'diminta' => $take,
+                        'diserahkan' => $take, // Default diserahkan = diminta
+                        'boh' => $receiptBoh,
+                    ]);
+                    
+                    $diminta -= $take;
+                }
             }
 
             DB::commit();

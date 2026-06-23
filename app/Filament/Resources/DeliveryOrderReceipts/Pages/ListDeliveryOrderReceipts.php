@@ -7,6 +7,7 @@ use App\Models\DeliveryOrderReceipt;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListDeliveryOrderReceipts extends ListRecords
@@ -16,7 +17,9 @@ class ListDeliveryOrderReceipts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Penerimaan DO')
+                ->icon(Heroicon::PlusCircle),
         ];
     }
 
@@ -25,6 +28,11 @@ class ListDeliveryOrderReceipts extends ListRecords
         return [
             'Semua' => Tab::make('Semua')
                 ->icon('heroicon-o-list-bullet'),
+            'Pending Dokumen' => Tab::make('Pending Dokumen')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Pending'))
+                ->icon('heroicon-o-clock')
+                ->badgeColor('danger')
+                ->badge(DeliveryOrderReceipt::where('status', 'Pending')->count()),
             'Menunggu Kedatangan Fisik (Transit)' => Tab::make('Menunggu Kedatangan Fisik (Transit)')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_physically_received', false)->where('receipt_mode', '!=', 'Standard'))
                 ->icon('heroicon-o-truck')

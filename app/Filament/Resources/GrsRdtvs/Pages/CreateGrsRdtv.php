@@ -13,13 +13,20 @@ class CreateGrsRdtv extends CreateRecord
     protected static string $resource = GrsRdtvResource::class;
 
     protected array $uploadedFiles = [];
+    protected array $uploadedItems = [];
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Pindahkan files ke property sementara agar tidak di-insert ke tabel grs_rdtvs
+        // Pindahkan files (GRS) ke property sementara
         if (isset($data['files'])) {
             $this->uploadedFiles = $data['files'];
             unset($data['files']);
+        }
+
+        // Pindahkan items (RDTV) ke property sementara
+        if (isset($data['items'])) {
+            $this->uploadedItems = $data['items'];
+            unset($data['items']);
         }
 
         return $data;
@@ -33,39 +40,74 @@ class CreateGrsRdtv extends CreateRecord
         $matchedCount = 0;
         $notFoundCount = 0;
 
-        foreach ($this->uploadedFiles as $file) {
-            if ($file instanceof TemporaryUploadedFile) {
-                // Ekstrak nama asli file (misal: 5300057474-10-5208-17062026.pdf)
-                $originalName = $file->getClientOriginalName();
-                $documentCode = pathinfo($originalName, PATHINFO_FILENAME); // Tanpa ekstensi .pdf
+        // --- Proses Dokumen GRS (Multiupload) ---
+        if ($category === 'GRS' && !empty($this->uploadedFiles)) {
+            foreach ($this->uploadedFiles as $file) {
+                if ($file instanceof TemporaryUploadedFile) {
+                    $originalName = $file->getClientOriginalName();
+                    $documentCode = pathinfo($originalName, PATHINFO_FILENAME);
+                    
+                    $path = $file->storeAs('grs-rdtv-docs', $originalName, 'public');
+                    $do = DeliveryOrderReceipt::where('document_code', $documentCode)->first();
 
-                // Pindahkan file ke storage (permanen)
-                $path = $file->storeAs('grs-rdtv-docs', $originalName, 'public');
+                    if ($do) {
+                        $do->update(['status' => $category]);
+                        $matchedCount++;
+                    } else {
+                        $notFoundCount++;
+                    }
 
-                // Cari DO yang sesuai
-                $do = DeliveryOrderReceipt::where('document_code', $documentCode)->first();
-
-                if ($do) {
-                    // Tautkan & Ubah status
-                    $do->update(['status' => $category]);
-                    $matchedCount++;
-                } else {
-                    $notFoundCount++;
+                    $grsRdtv->grsRdtvItems()->create([
+                        'delivery_order_receipt_id' => $do ? $do->id : null,
+                        'document_code' => $documentCode,
+                        'file_path' => $path,
+                        'status' => $do ? 'Matched' : 'Not Found',
+                        'reason' => null,
+                    ]);
                 }
+            }
+        }
 
-                // Catat ke item
-                $grsRdtv->grsRdtvItems()->create([
-                    'delivery_order_receipt_id' => $do ? $do->id : null,
-                    'document_code' => $documentCode,
-                    'file_path' => $path,
-                    'status' => $do ? 'Matched' : 'Not Found',
-                ]);
+        // --- Proses Dokumen RDTV (Repeater dengan alasan) ---
+        if ($category === 'RDTV' && !empty($this->uploadedItems)) {
+            foreach ($this->uploadedItems as $item) {
+                // Ekstrak file dari Repeater
+                $file = is_array($item['file']) ? array_values($item['file'])[0] ?? null : $item['file'];
+                $reason = $item['reason'] ?? null;
+
+                if ($file instanceof TemporaryUploadedFile) {
+                    $originalName = $file->getClientOriginalName();
+                    $documentCode = pathinfo($originalName, PATHINFO_FILENAME);
+                    
+                    $path = $file->storeAs('grs-rdtv-docs', $originalName, 'public');
+                    $do = DeliveryOrderReceipt::where('document_code', $documentCode)->first();
+
+                    if ($do) {
+                        // Karena RDTV, statusnya menjadi RDTV dan kita masukkan delay_reason
+                        $do->update([
+                            'status' => $category,
+                            'delay_reason' => 'RDTV',
+                            'delay_notes' => $reason
+                        ]);
+                        $matchedCount++;
+                    } else {
+                        $notFoundCount++;
+                    }
+
+                    $grsRdtv->grsRdtvItems()->create([
+                        'delivery_order_receipt_id' => $do ? $do->id : null,
+                        'document_code' => $documentCode,
+                        'file_path' => $path,
+                        'status' => $do ? 'Matched' : 'Not Found',
+                        'reason' => $reason,
+                    ]);
+                }
             }
         }
 
         Notification::make()
             ->title('Proses Selesai')
-            ->body("Berhasil memproses dokumen. Matched: {$matchedCount}, Not Found: {$notFoundCount}")
+            ->body("Berhasil memproses dokumen {$category}. Matched: {$matchedCount}, Not Found: {$notFoundCount}")
             ->success()
             ->send();
     }

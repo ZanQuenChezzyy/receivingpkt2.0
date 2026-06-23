@@ -28,6 +28,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'dof_date',
     'is_physically_received',
     'physical_received_date',
+    'delay_reason',
+    'delay_notes',
+    'pending_date',
+    'pending_resolved_date',
 ])]
 class DeliveryOrderReceipt extends Model
 {
@@ -46,6 +50,8 @@ class DeliveryOrderReceipt extends Model
             'dof_date' => 'date',
             'is_physically_received' => 'boolean',
             'physical_received_date' => 'date',
+            'pending_date' => 'datetime',
+            'pending_resolved_date' => 'datetime',
         ];
     }
 
