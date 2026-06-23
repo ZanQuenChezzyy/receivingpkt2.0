@@ -35,17 +35,21 @@
     
     getMousePos(e) {
         const rect = this.$refs.canvas.getBoundingClientRect();
+        const scaleX = this.$refs.canvas.width / rect.width;
+        const scaleY = this.$refs.canvas.height / rect.height;
         return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
         };
     },
     
     getTouchPos(e) {
         const rect = this.$refs.canvas.getBoundingClientRect();
+        const scaleX = this.$refs.canvas.width / rect.width;
+        const scaleY = this.$refs.canvas.height / rect.height;
         return {
-            x: e.touches[0].clientX - rect.left,
-            y: e.touches[0].clientY - rect.top
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
         };
     },
     
