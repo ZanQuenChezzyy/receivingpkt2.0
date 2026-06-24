@@ -15,9 +15,12 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements HasAvatar
+class User extends Authenticatable implements HasAvatar, FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
@@ -38,5 +41,15 @@ class User extends Authenticatable implements HasAvatar
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Menggunakan Spatie: Izinkan user yang memiliki role 'super_admin' atau 'admin'
+        // Silakan ubah nama role di bawah ini sesuai dengan yang ada di database Anda.
+        return $this->hasRole(['super_admin', 'admin', 'user']); 
+        
+        // Atau jika Anda ingin mengizinkan SEMUA user yang punya role apapun:
+        // return $this->roles()->exists();
     }
 }
